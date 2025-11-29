@@ -1,0 +1,26 @@
+﻿# Visual Studio
+.vs/
+
+# Build directories
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+
+# Publish
+publish/
+
+# Logs
+*.log
+
+# Environment
+*.env
+
+# Uploads - ignore all except default images
+wwwroot/uploads/books/*
+!wwwroot/uploads/books/default-book.jpg
+
+wwwroot/uploads/books/profiles/*
+!wwwroot/uploads/books/profiles/default-profile.jpg
