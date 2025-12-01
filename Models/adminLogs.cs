@@ -20,6 +20,6 @@ namespace ScholaAi.Models
         [ForeignKey(nameof(targetUserId))]
         public user? target { get; set; }
         [ForeignKey(nameof(targetRequestId))]
-        public sessionRequest? targetReruest { get; set; }
+        public sessionRequest? targetRequest { get; set; }
     }
 }

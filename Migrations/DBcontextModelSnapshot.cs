@@ -480,7 +480,7 @@ namespace ScholaAi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ScholaAi.Models.sessionRequest", "targetReruest")
+                    b.HasOne("ScholaAi.Models.sessionRequest", "targetRequest")
                         .WithOne("adminLogs")
                         .HasForeignKey("ScholaAi.Models.adminLogs", "targetRequestId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -494,7 +494,7 @@ namespace ScholaAi.Migrations
 
                     b.Navigation("target");
 
-                    b.Navigation("targetReruest");
+                    b.Navigation("targetRequest");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.chatMessage", b =>

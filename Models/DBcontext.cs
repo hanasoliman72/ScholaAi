@@ -38,7 +38,7 @@ namespace ScholaAi.Models
 
             modelBuilder.Entity<sessionRequest>()
                 .HasOne(u => u.adminLogs)
-                .WithOne(a => a.targetReruest)
+                .WithOne(a => a.targetRequest)
                 .HasForeignKey<adminLogs>(t => t.targetRequestId)
                  .OnDelete(DeleteBehavior.NoAction);
 
