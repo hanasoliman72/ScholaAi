@@ -12,7 +12,7 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20251128220127_init")]
+    [Migration("20251205080257_init")]
     partial class init
     {
         /// <inheritdoc />
