@@ -12,8 +12,8 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20251128220127_init")]
-    partial class init
+    [Migration("20251206121914_AddFocusScoreAndPhoneValidation")]
+    partial class AddFocusScoreAndPhoneValidation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,6 +204,9 @@ namespace ScholaAi.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("sessionId"));
+
+                    b.Property<int?>("focusScore")
+                        .HasColumnType("int");
 
                     b.Property<long>("recordedSession")
                         .HasColumnType("bigint");
