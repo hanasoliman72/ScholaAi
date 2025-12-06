@@ -41,6 +41,18 @@ namespace ScholaAi.Services
                 .Where(s => s.recordedSession > 0)
                 .Sum(s => s.recordedSession) / 3600.0m;
 
+            var focusScores = student.sessions
+                .Where(s => s.focusScore >= 0) // ensure score exists
+                .Select(s => s.focusScore)
+                .ToList();
+
+            double avgFocusScore = 0;
+            //Console.WriteLine("------------------------------");
+            //Console.WriteLine(focusScores.Count);
+            //Console.WriteLine("------------------------------");
+            if (focusScores.Count > 0)
+                avgFocusScore = (double)focusScores.Average();
+
             return new studentProfileDto
             {
                 userName = student.user.userName,
@@ -53,7 +65,7 @@ namespace ScholaAi.Services
                 grade = student.grade,
                 totalSessions = student.sessions.Count,
                 totalHours = totalHours,
-                averageFocusScore = 91, // implement focus score logic later
+                averageFocusScore = avgFocusScore,
                 sessionsThisMonth = sessionsThisMonth,
                 walletBalance = student.user.wallet?.balance
             };

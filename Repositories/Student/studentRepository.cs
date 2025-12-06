@@ -13,6 +13,7 @@ namespace ScholaAi.Repositories.Student
         {
             return await _dbSet
                 .Include(s => s.user)
+                .Include(s => s.sessions)
                 .FirstOrDefaultAsync(s => s.userId == id);
         }
     }

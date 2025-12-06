@@ -12,6 +12,8 @@ namespace ScholaAi.Models
         public int studentId { get; set; }
         public long recordedSession { get; set; }
         public string summary { get; set; }
+        [Range(0, 100)]
+        public int? focusScore { get; set; }
         public ICollection<notification> notifications { get; set; } = new List<notification>();
         [ForeignKey(nameof(teacherId))]
         public teacher? teacher { get; set; }

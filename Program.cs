@@ -47,6 +47,7 @@ namespace ScholaAi
             }
 
             app.UseAuthorization();
+            app.UseStaticFiles();
 
 
             app.MapControllers();

@@ -19,7 +19,7 @@ namespace ScholaAi.Models
         [EmailAddress]
         [MaxLength(100)]
         public string email { get; set; }
-        [Phone]
+        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
         [MaxLength(20)]
         public string phone { get; set; }
         public string? description { get; set; }

@@ -14,7 +14,7 @@
         // Session statistics
         public int totalSessions { get; set; }
         public decimal totalHours { get; set; }
-        public int? averageFocusScore { get; set; }
+        public double? averageFocusScore { get; set; }
         public int sessionsThisMonth { get; set; }
 
         // Subscription info
