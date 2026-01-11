@@ -53,6 +53,8 @@ namespace ScholaAi.Services
             if (focusScores.Count > 0)
                 avgFocusScore = (double)focusScores.Average();
 
+            var paymentHistory = getPaymentHistory(student);
+
             return new studentProfileDto
             {
                 userName = student.user.userName,
@@ -67,8 +69,28 @@ namespace ScholaAi.Services
                 totalHours = totalHours,
                 averageFocusScore = avgFocusScore,
                 sessionsThisMonth = sessionsThisMonth,
-                walletBalance = student.user.wallet?.balance
+                walletBalance = student.user.wallet?.balance,
+                paymentHistory = paymentHistory
             };
+        }
+
+        // Helper method to get paymentHistory
+        private List<PaymentHistoryItemDto> getPaymentHistory(student student)
+        {
+            if(student.user?.wallet == null) return new List<PaymentHistoryItemDto>();
+
+            // Get all transactions where this user paid form his wallet
+            var transactions = student.user.wallet.transactionsFrom
+                                .OrderByDescending(t => t.createdAt)
+                                .Take(3) // Get last 3 transactions
+                                .Select(t => new PaymentHistoryItemDto
+                                {
+                                    transactionId = t.transactionId,
+                                    amount = t.amount,
+                                    date = t.createdAt
+                                })
+                                .ToList();
+            return transactions;
         }
 
         public async Task<bool> updateStudentProfileAsync(int userId, updateStudentProfileDto dto)

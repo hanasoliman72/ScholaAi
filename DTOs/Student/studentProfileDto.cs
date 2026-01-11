@@ -19,5 +19,15 @@
 
         // Subscription info
         public decimal? walletBalance { get; set; }
+
+        public List<PaymentHistoryItemDto> paymentHistory { get; set; } = new();
+    }
+
+    public class PaymentHistoryItemDto
+    {
+        public int transactionId { get; set; }
+        // public string description { get; set; }  // EX: "Premium - 20 Hours"
+        public decimal amount { get; set; }
+        public DateTime date { get; set; }
     }
 }

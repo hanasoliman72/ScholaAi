@@ -13,7 +13,13 @@ namespace ScholaAi.Repositories.Student
         {
             return await _dbSet
                 .Include(s => s.user)
+                    .ThenInclude(u => u.wallet) 
+                        .ThenInclude(w => w.transactionsFrom) // Transactions FROM (payments)
+                            .ThenInclude(sess => sess.session)
+                                .ThenInclude(t => t.teacher)
+                                    .ThenInclude(tu => tu.user)
                 .Include(s => s.sessions)
+                    .ThenInclude(sess => sess.transaction) // Session transactions
                 .FirstOrDefaultAsync(s => s.userId == id);
         }
     }

@@ -35,8 +35,8 @@ namespace ScholaAi.Controllers
         [HttpPut("{userId}")]
         public async Task<IActionResult> updateProfile(int userId,[FromBody] updateStudentProfileDto dto)
         {
-
-            if(!ModelState.IsValid) return BadRequest(ModelState);
+            // TODO: Add authorization check - ensure user can only access their own profile
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _studentProfileService.updateStudentProfileAsync(userId, dto);
             if(!result) return NotFound("Student profile not found.");
@@ -48,6 +48,7 @@ namespace ScholaAi.Controllers
         [HttpPost("{userId}/changePassword")]
         public async Task<IActionResult> changePassword(int userId,[FromBody] changePasswordDto dto)
         {
+            // TODO: Add authorization check - ensure user can only access their own profile
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _studentProfileService.changePasswordAsync(userId, dto);
@@ -60,6 +61,7 @@ namespace ScholaAi.Controllers
         [HttpPost("{userId}/uploadPhoto")]
         public async Task<IActionResult> uploadPhoto(int userId,IFormFile file) 
         {
+            // TODO: Add authorization check - ensure user can only access their own profile
             if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
 
             var photoUrl = await _studentProfileService.uploadProfilePhotoAsync(userId,file);
