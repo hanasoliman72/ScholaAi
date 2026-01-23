@@ -82,6 +82,11 @@ namespace ScholaAi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            // Check if email already exists
+            var existingUser = await _userManager.FindByEmailAsync(userDto.email);
+            if (existingUser != null)
+                return BadRequest(new { message = "Email is already registered." });
+
             applicationUser identityUser = new applicationUser
             {
                 UserName = userDto.userName,
@@ -90,9 +95,7 @@ namespace ScholaAi.Controllers
             };
 
             var result = await _userManager.CreateAsync(identityUser, userDto.Password);
-            
-
-
+ 
             if (!result.Succeeded)
             // return BadRequest(result.Errors);
             {
@@ -143,7 +146,7 @@ namespace ScholaAi.Controllers
         //    if (ModelState.IsValid)
         //    {
         //        applicationUser user = await _userManager.FindByEmailAsync(userDto.email);
-        //        //var user = await _userRegisterService.GetUserByApplicationUserId(user.Id);
+        //        //var user = await _userRegisterService.getUserByApplicationUserId(user.Id);
 
         //        if (user != null)
         //        {

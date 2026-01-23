@@ -24,6 +24,7 @@ namespace ScholaAi.Models
         public DbSet<transaction>transactions { get; set; }
         public DbSet<user>users { get; set; }
         public DbSet<wallet>wallets { get; set; }
+        public DbSet<availability> availability { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

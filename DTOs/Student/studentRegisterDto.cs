@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ScholaAi.DTOs.Common;
+using ScholaAi.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ScholaAi.DTOs.Student
 {
@@ -21,10 +23,15 @@ namespace ScholaAi.DTOs.Student
         public  decimal grade { get; set; }
         public string? description { get; set; }
         [Required]
+        public Gender gender { get; set; }
+        [MinLength(1, ErrorMessage = "Select at least 1 time slot")]
+        public List<availabilityDto> availability { get; set; }
+        [Required]
         [MinLength(6)]
         public string Password { get; set; }
-
-
-
+        [Required(ErrorMessage = "Confirm Password is required")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; }
     }
 }

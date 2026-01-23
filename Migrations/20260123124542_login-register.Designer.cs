@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScholaAi.Models;
 
@@ -11,9 +12,11 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    partial class DBcontextModelSnapshot : ModelSnapshot
+    [Migration("20260123124542_login-register")]
+    partial class loginregister
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,30 +257,6 @@ namespace ScholaAi.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("ScholaAi.Models.availability", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<int>("Day")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TimeSlot")
-                        .HasColumnType("int");
-
-                    b.Property<int>("userId")
-                        .HasColumnType("int");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("availability");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.chatMessage", b =>
@@ -549,10 +528,6 @@ namespace ScholaAi.Migrations
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("teachingExperience")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("totalHoursTaught")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
@@ -643,9 +618,6 @@ namespace ScholaAi.Migrations
                     b.Property<string>("firstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("gender")
-                        .HasColumnType("int");
 
                     b.Property<string>("lastName")
                         .IsRequired()
@@ -781,17 +753,6 @@ namespace ScholaAi.Migrations
                     b.Navigation("target");
 
                     b.Navigation("targetRequest");
-                });
-
-            modelBuilder.Entity("ScholaAi.Models.availability", b =>
-                {
-                    b.HasOne("ScholaAi.Models.user", "user")
-                        .WithMany()
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.chatMessage", b =>

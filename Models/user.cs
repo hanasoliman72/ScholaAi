@@ -9,6 +9,11 @@ namespace ScholaAi.Models
         Teacher,
         Admin
     }
+    public enum Gender
+    {
+        Male, 
+        Female
+    }
     public class user
     {
         public string? applicationUserId { get; set; }
@@ -27,6 +32,7 @@ namespace ScholaAi.Models
         public string? description { get; set; }
         //public string? passwordHash { get; set; } // Not used with Identity - kept for backward compatibility
         public Type userType { get; set; }
+        public Gender gender { get; set; }
         public string? profilePhotoURL { get; set; }
         public string firstName { get; set; }
         public string lastName { get; set; }

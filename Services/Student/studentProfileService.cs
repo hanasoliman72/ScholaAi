@@ -73,17 +73,22 @@ namespace ScholaAi.Services
             };
         }
 
-        public async Task<bool> updateStudentProfileAsync(int userId, updateStudentProfileDto dto)
+        public async Task<(bool success, string message)> updateStudentProfileAsync(int userId, updateStudentProfileDto dto)
         {
             var student = await _studentRepository.getByIdAsync(userId);
             if (student == null || student.user == null)
-                return false;
+                return (false, "Student profile not found.");
 
             var user = student.user;
 
-            if (!string.IsNullOrWhiteSpace(dto.userName))
-                user.userName = dto.userName;
 
+            if (!string.IsNullOrWhiteSpace(dto.userName))
+            {
+                var userExists = await _userRepository.getUserByUserNameAsync(dto.userName);
+                if (userExists != null)
+                    return (false, "Username is already taken.");
+                user.userName = dto.userName;
+            }
             if (!string.IsNullOrWhiteSpace(dto.firstName))
                 user.firstName = dto.firstName;
 
@@ -101,7 +106,7 @@ namespace ScholaAi.Services
 
             await _userRepository.updateAsync(user);
             await _studentRepository.updateAsync(student);
-            return true;
+            return (true, "Profile updated successfully");
         }
 
         public async Task<bool> changePasswordAsync(int userId, changePasswordDto dto)

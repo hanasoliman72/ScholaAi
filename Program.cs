@@ -41,6 +41,7 @@ namespace ScholaAi
             builder.Services.AddScoped<IUserRepository, userRepository>();
             builder.Services.AddScoped<IStudentRepository, studentRepository>();
             builder.Services.AddScoped<ITeacherRepository, teacherRepository>();
+            builder.Services.AddScoped<IAvailabilityRepository, availabilityRepository>();
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();

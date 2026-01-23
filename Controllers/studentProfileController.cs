@@ -38,10 +38,11 @@ namespace ScholaAi.Controllers
 
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _studentProfileService.updateStudentProfileAsync(userId, dto);
-            if(!result) return NotFound("Student profile not found.");
+            var (success, message) = await _studentProfileService.updateStudentProfileAsync(userId, dto);
+            if (!success)
+                return BadRequest(message);
 
-            return Ok("Profile updated successfully");
+            return Ok(message);
         }
 
         // POST: api/studentProfile/{userId}/changePassword
