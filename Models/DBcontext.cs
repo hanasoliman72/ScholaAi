@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace ScholaAi.Models
 {
-    public class DBcontext : DbContext
+    public class DBcontext : IdentityDbContext<applicationUser, IdentityRole, string>
     {
         public DBcontext()
         {
@@ -25,10 +27,24 @@ namespace ScholaAi.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             base.OnModelCreating(modelBuilder);
+        
+            modelBuilder.Entity<student>()
+            .Property(s => s.grade)
+            .HasColumnType("decimal(5,2)");
+
             modelBuilder.Entity<user>()
-                .HasIndex(x => x.email)
-                .IsUnique();
+             .HasOne(u => u.applicationUser)
+             .WithOne(a => a.UserProfile)
+             .HasForeignKey<user>(u => u.applicationUserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<user>()
+              .HasIndex(u => u.email).IsUnique();
+
+            modelBuilder.Entity<user>()
+                .HasIndex(u => u.userName).IsUnique();
 
             modelBuilder.Entity<user>()
                 .HasOne(u => u.adminLogs)
@@ -66,16 +82,6 @@ namespace ScholaAi.Models
                 .HasForeignKey<wallet>(w => w.userId)
                  .OnDelete(DeleteBehavior.NoAction);
 
-
-            modelBuilder.Entity<user>()
-                .HasIndex(u => u.email)
-                .IsUnique();
-
-            modelBuilder.Entity<user>()
-                .HasIndex(u => u.userName)
-                .IsUnique();
-
-            
             modelBuilder.Entity<chatMessage>()
                 .HasOne(m => m.sender)
                 .WithMany(u => u.sentMessages)
@@ -93,8 +99,7 @@ namespace ScholaAi.Models
                 .WithMany(u => u.sentNotifications)
                 .HasForeignKey(n => n.senderId)
                 .OnDelete(DeleteBehavior.NoAction);
-
-            
+  
             modelBuilder.Entity<notification>()
                 .HasOne(n => n.receiver)
                 .WithMany(u => u.receivedNotifications)
@@ -118,14 +123,12 @@ namespace ScholaAi.Models
                 .WithMany(t => t.sessionRequests)
                 .HasForeignKey(r => r.teacherId)
                 .OnDelete(DeleteBehavior.SetNull);
-
            
             modelBuilder.Entity<sessionRequest>()
                 .HasOne(r => r.session)
                 .WithOne(s => s.sessionRequest)
                 .HasForeignKey<session>(s => s.requestId)
                 .OnDelete(DeleteBehavior.NoAction);
-
 
             modelBuilder.Entity<session>()
                 .HasOne(s => s.teacher)
@@ -138,7 +141,6 @@ namespace ScholaAi.Models
                 .WithMany(st => st.sessions)
                 .HasForeignKey(s => s.studentId)
                 .OnDelete(DeleteBehavior.NoAction);
-
             
             modelBuilder.Entity<session>()
                 .HasOne(s => s.rating)
@@ -157,7 +159,6 @@ namespace ScholaAi.Models
                 .WithMany(s => s.notifications)
                 .HasForeignKey(n => n.sessionId)
                  .OnDelete(DeleteBehavior.NoAction);
-
 
             modelBuilder.Entity<requestBroadcast>()
                 .HasOne(rb => rb.teacher)
@@ -182,7 +183,6 @@ namespace ScholaAi.Models
                 .WithMany(w => w.transactionsFrom)
                 .HasForeignKey(t => t.fromWalletId)
                 .OnDelete(DeleteBehavior.NoAction);
-
           
             modelBuilder.Entity<transaction>()
                 .HasOne(t => t.toWallet)

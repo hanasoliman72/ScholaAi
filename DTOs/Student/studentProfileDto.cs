@@ -9,7 +9,7 @@
         public string lastName { get; set; }
         public string? description { get; set; }
         public string? profilePhotoURL { get; set; }
-        public int grade { get; set; }
+        public decimal grade { get; set; }
 
         // Session statistics
         public int totalSessions { get; set; }

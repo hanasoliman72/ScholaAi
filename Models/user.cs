@@ -11,6 +11,8 @@ namespace ScholaAi.Models
     }
     public class user
     {
+        public string? applicationUserId { get; set; }
+
         [Key]
         public int userId { get; set; }
         
@@ -23,7 +25,7 @@ namespace ScholaAi.Models
         [MaxLength(20)]
         public string phone { get; set; }
         public string? description { get; set; }
-        public string passwordHash { get; set; }
+        //public string? passwordHash { get; set; } // Not used with Identity - kept for backward compatibility
         public Type userType { get; set; }
         public string? profilePhotoURL { get; set; }
         public string firstName { get; set; }
@@ -36,6 +38,9 @@ namespace ScholaAi.Models
         public ICollection<adminLogs> admins { get; set; } = new List<adminLogs>();
 
         public adminLogs? adminLogs { get; set; }
+        // Navigation
+        public applicationUser applicationUser { get; set; }
+
 
         public student? student { get; set; }
         public teacher? teacher { get; set; }

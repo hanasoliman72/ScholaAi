@@ -1,4 +1,5 @@
-﻿using ScholaAi.DTOs.Common;
+﻿using Microsoft.AspNetCore.Http;
+using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 
 namespace ScholaAi.Services

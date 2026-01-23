@@ -22,5 +22,12 @@ namespace ScholaAi.Repositories.User
                 .Include(u => u.teacher)
                 .FirstOrDefaultAsync(u => u.userId == id);
         }
+        public async Task<user?> GetUserByApplicationUserId(string applicationUserId)
+        {
+            return await _context.users
+                .FirstOrDefaultAsync(u => u.applicationUserId == applicationUserId);
+        }
+
+
     }
 }
