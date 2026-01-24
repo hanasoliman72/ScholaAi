@@ -1,4 +1,6 @@
-﻿using ScholaAi.Repositories.Base;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using ScholaAi.Services.Base;
 
 namespace ScholaAi.Services.User
 {
@@ -8,13 +10,16 @@ namespace ScholaAi.Services.User
 
         public fileUploadService(IWebHostEnvironment env)
         {
-            _env = env;
+            _env = env ?? throw new ArgumentNullException(nameof(env));
         }
 
-        public async Task<string> UploadFileAsync(IFormFile file, string folder)
+        public async Task<string?> UploadFileAsync(IFormFile file, string folder)
         {
             if (file == null || file.Length == 0)
                 return null;
+
+            if (string.IsNullOrWhiteSpace(_env.WebRootPath))
+                throw new InvalidOperationException("WebRootPath is not configured.");
 
             string uploadPath = Path.Combine(_env.WebRootPath, folder);
 

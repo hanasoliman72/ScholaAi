@@ -10,6 +10,7 @@ namespace ScholaAi.Models
         public string college { get; set; }
         public string? description { get; set; }
         public string certificate { get; set; }
+        public string teachingExperience { get; set; }
         [Precision(18, 4)]
         public decimal totalHoursTaught { get; set; } = 0;
         [Precision(18, 4)]

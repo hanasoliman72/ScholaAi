@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
+using ScholaAi.Services.Base;
 
 namespace ScholaAi.Services
 {
@@ -10,18 +12,18 @@ namespace ScholaAi.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IStudentRepository _studentRepository;
-        private readonly IPasswordHasher<user> _passwordHasher;
+        private readonly UserManager<applicationUser> _userManager;
         private readonly IFileUploadService _fileUploadService;
 
         public studentProfileService(
             IUserRepository userRepository,
             IStudentRepository studentRepository,
-            IPasswordHasher<user> passwordHasher,
+            UserManager<applicationUser> userManager,
             IFileUploadService fileUploadService)
         {
             _userRepository = userRepository;
             _studentRepository = studentRepository;
-            _passwordHasher = passwordHasher;
+            _userManager = userManager;
             _fileUploadService = fileUploadService;
         }
 
@@ -74,6 +76,7 @@ namespace ScholaAi.Services
             };
         }
 
+
         // Helper method to get paymentHistory
         private List<PaymentHistoryItemDto> getPaymentHistory(student student)
         {
@@ -93,17 +96,23 @@ namespace ScholaAi.Services
             return transactions;
         }
 
-        public async Task<bool> updateStudentProfileAsync(int userId, updateStudentProfileDto dto)
+        public async Task<(bool success, string message)> updateStudentProfileAsync(int userId, updateStudentProfileDto dto)
+
         {
             var student = await _studentRepository.getByIdAsync(userId);
             if (student == null || student.user == null)
-                return false;
+                return (false, "Student profile not found.");
 
             var user = student.user;
 
-            if (!string.IsNullOrWhiteSpace(dto.userName))
-                user.userName = dto.userName;
 
+            if (!string.IsNullOrWhiteSpace(dto.userName))
+            {
+                var userExists = await _userRepository.getUserByUserNameAsync(dto.userName);
+                if (userExists != null)
+                    return (false, "Username is already taken.");
+                user.userName = dto.userName;
+            }
             if (!string.IsNullOrWhiteSpace(dto.firstName))
                 user.firstName = dto.firstName;
 
@@ -121,23 +130,30 @@ namespace ScholaAi.Services
 
             await _userRepository.updateAsync(user);
             await _studentRepository.updateAsync(student);
-            return true;
+            return (true, "Profile updated successfully");
         }
 
         public async Task<bool> changePasswordAsync(int userId, changePasswordDto dto)
         {
             var user = await _userRepository.getByIdAsync(userId);
-            if (user == null)
+            if (user == null || string.IsNullOrEmpty(user.applicationUserId))
                 return false;
 
-            var result = _passwordHasher.VerifyHashedPassword(user, user.passwordHash, dto.currentPassword);
-
-            if (result == PasswordVerificationResult.Failed)
+            // Find the Identity user (applicationUser) using applicationUserId
+            var identityUser = await _userManager.FindByIdAsync(user.applicationUserId);
+            if (identityUser == null)
                 return false;
 
-            user.passwordHash = _passwordHasher.HashPassword(user, dto.newPassword);
-            await _userRepository.updateAsync(user);
-            return true;
+            // Verify current password using Identity
+            bool passwordValid = await _userManager.CheckPasswordAsync(identityUser, dto.currentPassword);
+            if (!passwordValid)
+                return false;
+
+            // Change password using Identity
+            var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+            var result = await _userManager.ResetPasswordAsync(identityUser, token, dto.newPassword);
+            
+            return result.Succeeded;
         }
 
         public async Task<string?> uploadProfilePhotoAsync(int userId, IFormFile file)
@@ -147,6 +163,9 @@ namespace ScholaAi.Services
                 return null;
 
             var photoUrl = await _fileUploadService.UploadFileAsync(file, "profile-photos");
+            if (photoUrl == null)
+                return null;
+
             user.profilePhotoURL = photoUrl;
             await _userRepository.updateAsync(user);
 

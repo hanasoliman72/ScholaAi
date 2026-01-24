@@ -17,7 +17,7 @@ namespace ScholaAi.DTOs.Student
         ErrorMessage = "Phone number must be in valid international format (E.164). Example: +14155552671")]
         public string? phone { get; set; }
         [Range(1, 12, ErrorMessage = "Grade must be between 1 and 12.")]
-        public int? grade { get; set; }
+        public decimal? grade { get; set; }
         [StringLength(500)]
         public string? description { get; set; }
     }
