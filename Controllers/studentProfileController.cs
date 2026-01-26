@@ -47,7 +47,7 @@ namespace ScholaAi.Controllers
 
         // POST: api/studentProfile/{userId}/changePassword
         [HttpPost("{userId}/changePassword")]
-        public async Task<IActionResult> changePassword(int userId,[FromBody] changePasswordDto dto)
+        public async Task<IActionResult> changePassword(int userId,[FromBody] DTOs.Common.changePasswordDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

@@ -34,14 +34,17 @@ namespace ScholaAi
 
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
-            builder.Services.AddScoped<userRegisterService>();
+            builder.Services.AddScoped<IUserService, userService>();
             builder.Services.AddScoped<IFileUploadService, fileUploadService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, userRepository>();
             builder.Services.AddScoped<IStudentRepository, studentRepository>();
             builder.Services.AddScoped<ITeacherRepository, teacherRepository>();
             builder.Services.AddScoped<IAvailabilityRepository, availabilityRepository>();
+
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();

@@ -1,12 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using ScholaAi.DTOs;
+using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teatcher;
 using ScholaAi.Models;
+using ScholaAi.Repositories.Base;
 using ScholaAi.Services;
+using ScholaAi.Services.Base;
 using ScholaAi.Services.User;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -18,12 +22,13 @@ namespace ScholaAi.Controllers
     [ApiController]
     public class accountController : ControllerBase
     {
-        private readonly userRegisterService _userRegisterService;
+        private readonly IUserService _userService;
         private readonly UserManager<applicationUser> _userManager;
         private readonly IConfiguration _configuration;
-        public accountController(userRegisterService userRegisterService, UserManager<applicationUser> userManager,IConfiguration configuration )
+        //private readonly IPasswordService _passwordService;
+        public accountController(IUserService userService, UserManager<applicationUser> userManager,IConfiguration configuration )
         {
-            _userRegisterService = userRegisterService;
+            _userService = userService;
             _userManager = userManager;
             _configuration = configuration;
         }
@@ -105,7 +110,7 @@ namespace ScholaAi.Controllers
             await _userManager.AddToRoleAsync(identityUser, "Student");
             userDto.id = identityUser.Id;
 
-            await _userRegisterService.registerStudent(userDto);
+            await _userService.registerStudent(userDto);
 
             return Ok("Registered Successfully");
         }
@@ -127,7 +132,7 @@ namespace ScholaAi.Controllers
                 { 
                     await _userManager.AddToRoleAsync(user, "Teacher");
                     userDto.id = user.Id;
-                    await _userRegisterService.registerTeacher(userDto);
+                    await _userService.registerTeacher(userDto);
                    
                     return Ok("You Registered Successfully");
                 }
@@ -218,7 +223,7 @@ namespace ScholaAi.Controllers
                 return Unauthorized();
 
             
-            var dbUser = await _userRegisterService
+            var dbUser = await _userService
                 .GetUserByApplicationUserId(identityUser.Id);
 
             if (dbUser == null)
@@ -258,9 +263,45 @@ namespace ScholaAi.Controllers
             });
         }
 
+        // ========================
+        // Forgot Password
+        // ========================
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var result = await _userService.SendForgotPasswordEmailAsync(dto.Email);
+            if (!result) return NotFound("User not found.");
+            return Ok("Reset password email sent.");
+        }
 
+        // ========================
+        // Reset Password
+        // ========================
+        //[HttpPost("reset-password")]
+        //public async Task<IActionResult> ResetPassword([FromBody] resetPasswordDto dto)
+        //{
+        //    var result = await _userService.ResetPasswordAsync(dto);
+        //    if (!result)
+        //    {
+        //        var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+        //        Console.WriteLine(errors); // هنا هتعرف السبب
+        //    }
+        //    //return BadRequest("Failed to reset password.");
+        //    return Ok("Password has been reset successfully.");
+        //}
 
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] resetPasswordDto dto)
+        {
+            var result = await _userService.ResetPasswordAsync(dto); // دلوقتي IdentityResult
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                Console.WriteLine(errors); // هتعرف السبب
+                return BadRequest(errors);
+            }
 
-
+            return Ok("Password has been reset successfully.");
+        }
     }
 }
