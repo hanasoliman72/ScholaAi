@@ -18,6 +18,8 @@ publish/
 # Environment
 *.env
 
+appsettings.Development.json
+
 # Uploads - ignore all except default images
 wwwroot/uploads/books/*
 !wwwroot/uploads/books/default-book.jpg
