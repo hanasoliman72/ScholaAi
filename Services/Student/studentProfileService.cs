@@ -133,7 +133,29 @@ namespace ScholaAi.Services
             return (true, "Profile updated successfully");
         }
 
-        public async Task<bool> changePasswordAsync(int userId, changePasswordDto dto)
+        //public async Task<bool> changePasswordAsync(int userId, DTOs.Common.changePasswordDto dto)
+        //{
+        //    var user = await _userRepository.getByIdAsync(userId);
+        //    if (user == null || string.IsNullOrEmpty(user.applicationUserId))
+        //        return false;
+
+        //    // Find the Identity user (applicationUser) using applicationUserId
+        //    var identityUser = await _userManager.FindByIdAsync(user.applicationUserId);
+        //    if (identityUser == null)
+        //        return false;
+
+        //    // Verify current password using Identity
+        //    bool passwordValid = await _userManager.CheckPasswordAsync(identityUser, dto.currentPassword);
+        //    if (!passwordValid)
+        //        return false;
+
+        //    // Change password using Identity
+        //    var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+        //    var result = await _userManager.ResetPasswordAsync(identityUser, token, dto.newPassword);
+
+        //    return result.Succeeded;
+        //}
+        public async Task<bool> changePasswordAsync(int userId, DTOs.Common.changePasswordDto dto)
         {
             var user = await _userRepository.getByIdAsync(userId);
             if (user == null || string.IsNullOrEmpty(user.applicationUserId))
@@ -152,9 +174,10 @@ namespace ScholaAi.Services
             // Change password using Identity
             var token = await _userManager.GeneratePasswordResetTokenAsync(identityUser);
             var result = await _userManager.ResetPasswordAsync(identityUser, token, dto.newPassword);
-            
+
             return result.Succeeded;
         }
+
 
         public async Task<string?> uploadProfilePhotoAsync(int userId, IFormFile file)
         {
@@ -171,5 +194,7 @@ namespace ScholaAi.Services
 
             return photoUrl;
         }
+
+
     }
 }

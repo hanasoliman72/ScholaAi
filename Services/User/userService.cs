@@ -1,27 +1,37 @@
-﻿using ScholaAi.DTOs.Student;
+﻿using Microsoft.AspNetCore.Identity;
+using ScholaAi.DTOs.Common;
+using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teatcher;
 using ScholaAi.DTOs.User;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
+using ScholaAi.Services.Base;
 
 namespace ScholaAi.Services.User
 {
-    public class userRegisterService
+    public class userService :IUserService 
     {
         private readonly IUserRepository _userRepository;
         private readonly IStudentRepository _studentRepository;
         private readonly ITeacherRepository _teacherRepository;
         private readonly IAvailabilityRepository _availabilityRepository;
-
-       public userRegisterService(
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEmailService _emailService;
+        private readonly UserManager<applicationUser> _userManager;
+        public userService(
             IUserRepository userRepository,
             IStudentRepository studentRepository,
-            ITeacherRepository teacherRepository,IAvailabilityRepository availabilityRepository)
+            ITeacherRepository teacherRepository,IAvailabilityRepository availabilityRepository,
+            IEmailService emailService, IHttpContextAccessor httpContextAccessor,
+                UserManager<applicationUser> userManager)
         {
             _userRepository = userRepository;
             _studentRepository = studentRepository;
             _teacherRepository = teacherRepository;
             _availabilityRepository = availabilityRepository;
+            _emailService = emailService;
+            _httpContextAccessor = httpContextAccessor;
+            _userManager = userManager;
         }
         public async Task<studentRegisterDto> registerStudent(studentRegisterDto nUser)
         {
@@ -116,6 +126,68 @@ namespace ScholaAi.Services.User
         public async Task<user> GetUserByApplicationUserId(string appUserId)
         {
             return await _userRepository.getUserByApplicationUserId(appUserId);
+        }
+
+public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
+{
+    var userEntity = await _userRepository.getByEmailAsync(email);
+    if (userEntity == null) return false;
+
+    var identityUser = await _userManager.FindByIdAsync(userEntity.applicationUserId);
+    if (identityUser == null) return false;
+
+    var result = await _userRepository.resetPasswordAsync(identityUser, token, newPassword);
+    return result.Succeeded;
+}
+        // for password 
+
+        public async Task<bool> SendForgotPasswordEmailAsync(string email)
+        {
+            var user = await _userRepository.getByEmailAsync(email);
+            if (user == null) return false;
+
+            var appUser = await _userManager.FindByIdAsync(user.applicationUserId);
+            if (appUser == null) return false;
+
+            var token = await _userRepository.generatePasswordResetTokenAsync(appUser);
+            var resetLink = $"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}";
+
+            await _emailService.SendEmailAsync(email, "Reset Password", $"Click here to reset your password: {resetLink}");
+            return true;
+        }
+
+        // إعادة تعيين الباسورد باستخدام التوكن
+        //public async Task<bool> ResetPasswordAsync(resetPasswordDto dto)
+        //{
+        //    var user = await _userRepository.getByEmailAsync(dto.Email);
+        //    if (user == null) return false;
+
+        //    var appUser = await _userManager.FindByIdAsync(user.applicationUserId);
+        //    if (appUser == null) return false;
+
+        //    var result = await _userRepository.resetPasswordAsync(appUser, dto.Token, dto.NewPassword);
+        //    return result.Succeeded;
+        //}
+        public async Task<IdentityResult> ResetPasswordAsync(resetPasswordDto dto)
+        {
+            var user = await _userRepository.getByEmailAsync(dto.Email);
+            if (user == null) return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+
+            var appUser = await _userManager.FindByIdAsync(user.applicationUserId);
+            if (appUser == null) return IdentityResult.Failed(new IdentityError { Description = "Identity user not found" });
+
+            var result = await _userRepository.resetPasswordAsync(appUser, dto.Token, dto.NewPassword);
+            return result; 
+        }
+
+        // تغيير الباسورد بعد تسجيل الدخول
+        public async Task<bool> ChangePasswordAsync(string applicationUserId, changePasswordDto dto)
+        {
+            var appUser = await _userManager.FindByIdAsync(applicationUserId);
+            if (appUser == null) return false;
+
+            var result = await _userManager.ChangePasswordAsync(appUser, dto.currentPassword, dto.newPassword);
+            return result.Succeeded;
         }
 
     }

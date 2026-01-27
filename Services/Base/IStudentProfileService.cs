@@ -8,7 +8,7 @@ namespace ScholaAi.Services
     {
         Task<studentProfileDto?> getStudentProfileAsync(int userId);
         Task<(bool success, string message)> updateStudentProfileAsync(int userId, updateStudentProfileDto dto);
-        Task<bool> changePasswordAsync(int userId, changePasswordDto dto);
+        Task<bool> changePasswordAsync(int userId, DTOs.Common.changePasswordDto dto);
         Task<string?> uploadProfilePhotoAsync(int userId, IFormFile file);
     }
 }

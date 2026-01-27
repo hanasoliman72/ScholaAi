@@ -1,4 +1,5 @@
-﻿using ScholaAi.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using ScholaAi.Models;
 
 namespace ScholaAi.Repositories.Base
 {
@@ -7,6 +8,9 @@ namespace ScholaAi.Repositories.Base
         Task<user?> getByEmailAsync(string email);
         Task<user> getUserByApplicationUserId(string appUserId);
         Task<user> getUserByUserNameAsync(string userName);
+        Task<IdentityResult> resetPasswordAsync(applicationUser user, string token, string newPassword);
+
+        Task<string> generatePasswordResetTokenAsync(applicationUser user);
     }
 
 }
