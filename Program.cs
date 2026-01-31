@@ -1,14 +1,21 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ScholaAi.Data.Seeders;
+using ScholaAi.Mappings;
 using ScholaAi.Models;
+using ScholaAi.Repositories;
 using ScholaAi.Repositories.Base;
+using ScholaAi.Repositories.Rating;
 using ScholaAi.Repositories.Student;
 using ScholaAi.Repositories.Teacher;
 using ScholaAi.Repositories.User;
 using ScholaAi.Services;
 using ScholaAi.Services.Base;
+using ScholaAi.Services.Rating;
 using ScholaAi.Services.User;
+using AutoMapper;
 
 namespace ScholaAi
 {
@@ -32,18 +39,24 @@ namespace ScholaAi
             // Controllers
             builder.Services.AddControllers();
 
+            // Automapper
+            builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
+
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
             builder.Services.AddScoped<IUserService, userService>();
             builder.Services.AddScoped<IFileUploadService, fileUploadService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IRatingService, ratingService>();
 
 
             // Repositories
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(genericRepository<>));
             builder.Services.AddScoped<IUserRepository, userRepository>();
             builder.Services.AddScoped<IStudentRepository, studentRepository>();
             builder.Services.AddScoped<ITeacherRepository, teacherRepository>();
             builder.Services.AddScoped<IAvailabilityRepository, availabilityRepository>();
+            builder.Services.AddScoped<IRatingRepository, ratingRepository>();
 
 
             // Swagger
@@ -66,11 +79,18 @@ namespace ScholaAi
                     }
                 }
             }
+
             // Middleware
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+            }
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<DBcontext>();
+                ratingSeeder.SeedRatingData(context);
             }
 
             app.UseStaticFiles();
