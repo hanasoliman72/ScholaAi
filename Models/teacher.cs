@@ -7,10 +7,17 @@ namespace ScholaAi.Models
     {
         [Key]
         public int userId { get; set; }
+        [Required]
+        [StringLength(100, MinimumLength = 2)]
         public string college { get; set; }
+        [MaxLength(500)]
         public string? description { get; set; }
+        [Required]
         public string certificate { get; set; }
+        [Required]
         public string teachingExperience { get; set; }
+        [Required]
+        public string subjectName { get; set; }
         [Precision(18, 4)]
         public decimal totalHoursTaught { get; set; } = 0;
         [Precision(18, 4)]

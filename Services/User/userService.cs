@@ -114,10 +114,22 @@ namespace ScholaAi.Services.User
                 certificate = nUser.certificate,
                 college = nUser.college,
                 teachingExperience = nUser.teachingExperience,
+                subjectName = nUser.subjectName
 
             };
             await _teacherRepository.addAsync(teacher);
 
+            if (nUser.availability != null && nUser.availability.Count > 0)
+            {
+                var availabilityEntities = nUser.availability.Select(a => new availability
+                {
+                    Day = a.Day,
+                    TimeSlot = a.TimeSlot,
+                    userId = newUser.userId
+                }).ToList();
+
+                await _availabilityRepository.addRangeAsync(availabilityEntities);
+            }
             nUser.userId = newUser.userId;
 
             return nUser;
