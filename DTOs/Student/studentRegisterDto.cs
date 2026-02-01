@@ -20,7 +20,7 @@ namespace ScholaAi.DTOs.Student
         [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
         [MaxLength(20)]
         public string phone { get; set; }
-        public  decimal grade { get; set; }
+        public  int grade { get; set; }
         public string? description { get; set; }
         [Required]
         public Gender gender { get; set; }

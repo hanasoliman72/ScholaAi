@@ -20,7 +20,8 @@ namespace ScholaAi.Models
 
         [Key]
         public int userId { get; set; }
-        
+        [Required]
+        [StringLength(50, MinimumLength = 2)]
         public string userName { get; set; }
         [Required]
         [EmailAddress]
@@ -29,13 +30,20 @@ namespace ScholaAi.Models
         [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
         [MaxLength(20)]
         public string phone { get; set; }
+        [MaxLength(500)]
         public string? description { get; set; }
         //public string? passwordHash { get; set; } // Not used with Identity - kept for backward compatibility
         public Type userType { get; set; }
         public Gender gender { get; set; }
         public string? profilePhotoURL { get; set; }
+        [Required]
+        [StringLength(50, MinimumLength = 2)]
         public string firstName { get; set; }
+        [Required]
+        [StringLength(50, MinimumLength = 1)]
         public string lastName { get; set; }
+
+        // Navigation
         public ICollection<notification> sentNotifications { get; set; } = new List<notification>();
         public ICollection<notification> receivedNotifications { get; set; } = new List<notification>();
 
@@ -44,7 +52,7 @@ namespace ScholaAi.Models
         public ICollection<adminLogs> admins { get; set; } = new List<adminLogs>();
 
         public adminLogs? adminLogs { get; set; }
-        // Navigation
+        
         public applicationUser applicationUser { get; set; }
 
 
