@@ -118,16 +118,21 @@ namespace ScholaAi.Controllers
         [HttpPost("register/teacher")]
         public async Task<IActionResult> registerTeacher(teacherRegisterDto userDto)
         {
-            if (ModelState.IsValid)
-            {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Check if email already exists
+            var existingUser = await _userManager.FindByEmailAsync(userDto.email);
+            if (existingUser != null)
+                return BadRequest(new { message = "Email is already registered." });
+
                 applicationUser user = new applicationUser();
                 user.UserName = userDto.userName;
                 user.Email = userDto.email;
                 user.PhoneNumber = userDto.phone;
 
                 var result = await _userManager.CreateAsync(user, userDto.Password);
-               
-
+              
                 if (result.Succeeded)
                 { 
                     await _userManager.AddToRoleAsync(user, "Teacher");
@@ -140,10 +145,7 @@ namespace ScholaAi.Controllers
                 {
                     var errors = result.Errors.Select(e => e.Description);
                     return BadRequest(new { message = "Registration failed", errors });
-                } 
-                   
-            }
-            return BadRequest(ModelState);
+                }
         }
         //[HttpPost("login")]
         //public async Task<IActionResult> login(loginDto userDto)
