@@ -84,17 +84,13 @@ namespace ScholaAi.Services.Rating
                     throw new UnauthorizedAccessException("You can only update your own ratings");
 
                 // Update the rating
-                var rating = new rating
-                {
-                    ratingValue = dto.ratingValue,
-                    comment = dto.comment
-                };
-
-                await _ratingRepository.updateAsync(rating);
+                existingRating.ratingValue = dto.ratingValue;
+                existingRating.comment = dto.comment;
+                
+                await _ratingRepository.updateAsync(existingRating);
                 _logger.LogInformation("Rating {RatingId} updated", ratingId);
 
-                var updatedRating = await _ratingRepository.getByIdAsync(ratingId);
-                return _mapper.Map<ratingDto>(updatedRating);
+                return _mapper.Map<ratingDto>(existingRating);
             }
             catch (Exception ex)
             {

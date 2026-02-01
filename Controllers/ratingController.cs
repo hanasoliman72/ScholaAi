@@ -70,7 +70,8 @@ namespace ScholaAi.Controllers
 
         // PUT: api/rating/{ratingId}
         [HttpPut("{ratingId}")]
-        [Authorize]
+        [AllowAnonymous]
+        //[Authorize]
         public async Task<IActionResult> updateRating(int ratingId, [FromBody] ratingUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -79,7 +80,7 @@ namespace ScholaAi.Controllers
             try
             {
                 var studentId = getStudentIdFromToken();
-
+                
                 var result = await _ratingService.updateRatingAsync(ratingId, studentId, dto);
 
                 if (result == null)
