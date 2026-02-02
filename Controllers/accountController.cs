@@ -233,11 +233,11 @@ namespace ScholaAi.Controllers
 
           
             var claims = new List<Claim>()
-    {
-        new Claim(ClaimTypes.Email, identityUser.Email ?? ""),
-        new Claim(ClaimTypes.NameIdentifier, identityUser.Id),
-        new Claim("UserType", dbUser.userType.ToString())
-    };
+            {
+            new Claim(ClaimTypes.Email, identityUser.Email ?? ""),
+            new Claim(ClaimTypes.NameIdentifier, identityUser.Id),
+            new Claim("UserType", dbUser.userType.ToString())
+            };
 
             var roles = await _userManager.GetRolesAsync(identityUser);
             foreach (var role in roles)

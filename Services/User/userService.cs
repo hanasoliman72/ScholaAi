@@ -114,7 +114,7 @@ namespace ScholaAi.Services.User
                 certificate = nUser.certificate,
                 college = nUser.college,
                 teachingExperience = nUser.teachingExperience,
-                subjectName = nUser.subjectName
+                subjectId = nUser.subjectId,
 
             };
             await _teacherRepository.addAsync(teacher);

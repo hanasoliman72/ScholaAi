@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ScholaAi.Migrations
 {
     /// <inheritdoc />
-    public partial class loginregister : Migration
+    public partial class intialClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,7 +57,7 @@ namespace ScholaAi.Migrations
                     subjectId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    description = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -177,14 +177,15 @@ namespace ScholaAi.Migrations
                     userId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     applicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    userName = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    userName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     userType = table.Column<int>(type: "int", nullable: false),
+                    gender = table.Column<int>(type: "int", nullable: false),
                     profilePhotoURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    firstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    lastName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    firstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    lastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -194,6 +195,27 @@ namespace ScholaAi.Migrations
                         column: x => x.applicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "availability",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Day = table.Column<int>(type: "int", nullable: false),
+                    TimeSlot = table.Column<int>(type: "int", nullable: false),
+                    userId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_availability", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_availability_users_userId",
+                        column: x => x.userId,
+                        principalTable: "users",
+                        principalColumn: "userId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -250,12 +272,20 @@ namespace ScholaAi.Migrations
                     college = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     certificate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    teachingExperience = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     totalHoursTaught = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
-                    totalRates = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false)
+                    totalRates = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    subjectId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_teachers", x => x.userId);
+                    table.ForeignKey(
+                        name: "FK_teachers_subjects_subjectId",
+                        column: x => x.subjectId,
+                        principalTable: "subjects",
+                        principalColumn: "subjectId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_teachers_users_userId",
                         column: x => x.userId,
@@ -287,7 +317,7 @@ namespace ScholaAi.Migrations
                 name: "sessionRequests",
                 columns: table => new
                 {
-                    sessionId = table.Column<int>(type: "int", nullable: false)
+                    requestId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     teacherId = table.Column<int>(type: "int", nullable: true),
                     studentId = table.Column<int>(type: "int", nullable: false),
@@ -300,7 +330,7 @@ namespace ScholaAi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sessionRequests", x => x.sessionId);
+                    table.PrimaryKey("PK_sessionRequests", x => x.requestId);
                     table.ForeignKey(
                         name: "FK_sessionRequests_students_studentId",
                         column: x => x.studentId,
@@ -310,8 +340,7 @@ namespace ScholaAi.Migrations
                         name: "FK_sessionRequests_subjects_subjectId",
                         column: x => x.subjectId,
                         principalTable: "subjects",
-                        principalColumn: "subjectId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "subjectId");
                     table.ForeignKey(
                         name: "FK_sessionRequests_teachers_teacherId",
                         column: x => x.teacherId,
@@ -321,34 +350,11 @@ namespace ScholaAi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "teacherSubjects",
-                columns: table => new
-                {
-                    teacherId = table.Column<int>(type: "int", nullable: false),
-                    subjectId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_teacherSubjects", x => new { x.subjectId, x.teacherId });
-                    table.ForeignKey(
-                        name: "FK_teacherSubjects_subjects_subjectId",
-                        column: x => x.subjectId,
-                        principalTable: "subjects",
-                        principalColumn: "subjectId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_teacherSubjects_teachers_teacherId",
-                        column: x => x.teacherId,
-                        principalTable: "teachers",
-                        principalColumn: "userId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "adminLogs",
                 columns: table => new
                 {
-                    logId = table.Column<int>(type: "int", nullable: false),
+                    logId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     adminId = table.Column<int>(type: "int", nullable: false),
                     targetType = table.Column<int>(type: "int", nullable: true),
                     targetUserId = table.Column<int>(type: "int", nullable: true),
@@ -363,10 +369,10 @@ namespace ScholaAi.Migrations
                         name: "FK_adminLogs_sessionRequests_targetRequestId",
                         column: x => x.targetRequestId,
                         principalTable: "sessionRequests",
-                        principalColumn: "sessionId");
+                        principalColumn: "requestId");
                     table.ForeignKey(
-                        name: "FK_adminLogs_users_logId",
-                        column: x => x.logId,
+                        name: "FK_adminLogs_users_adminId",
+                        column: x => x.adminId,
                         principalTable: "users",
                         principalColumn: "userId",
                         onDelete: ReferentialAction.Cascade);
@@ -396,7 +402,7 @@ namespace ScholaAi.Migrations
                         name: "FK_requestBroadcasts_sessionRequests_requestId",
                         column: x => x.requestId,
                         principalTable: "sessionRequests",
-                        principalColumn: "sessionId");
+                        principalColumn: "requestId");
                     table.ForeignKey(
                         name: "FK_requestBroadcasts_teachers_teacherId",
                         column: x => x.teacherId,
@@ -424,7 +430,7 @@ namespace ScholaAi.Migrations
                         name: "FK_sessions_sessionRequests_requestId",
                         column: x => x.requestId,
                         principalTable: "sessionRequests",
-                        principalColumn: "sessionId");
+                        principalColumn: "requestId");
                     table.ForeignKey(
                         name: "FK_sessions_students_studentId",
                         column: x => x.studentId,
@@ -479,7 +485,10 @@ namespace ScholaAi.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     sessionId = table.Column<int>(type: "int", nullable: false),
                     teacherId = table.Column<int>(type: "int", nullable: false),
-                    ratingValue = table.Column<int>(type: "int", nullable: false)
+                    studentId = table.Column<int>(type: "int", nullable: true),
+                    ratingValue = table.Column<int>(type: "int", nullable: false),
+                    comment = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    createdAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -493,6 +502,11 @@ namespace ScholaAi.Migrations
                         name: "FK_ratings_teachers_teacherId",
                         column: x => x.teacherId,
                         principalTable: "teachers",
+                        principalColumn: "userId");
+                    table.ForeignKey(
+                        name: "FK_ratings_users_studentId",
+                        column: x => x.studentId,
+                        principalTable: "users",
                         principalColumn: "userId");
                 });
 
@@ -528,6 +542,11 @@ namespace ScholaAi.Migrations
                         principalTable: "wallets",
                         principalColumn: "walletId");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_adminLogs_adminId",
+                table: "adminLogs",
+                column: "adminId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_adminLogs_targetRequestId",
@@ -583,6 +602,11 @@ namespace ScholaAi.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_availability_userId",
+                table: "availability",
+                column: "userId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_chatMessages_receiverId",
                 table: "chatMessages",
                 column: "receiverId");
@@ -614,6 +638,11 @@ namespace ScholaAi.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ratings_studentId",
+                table: "ratings",
+                column: "studentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ratings_teacherId",
                 table: "ratings",
                 column: "teacherId");
@@ -636,8 +665,7 @@ namespace ScholaAi.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_sessionRequests_subjectId",
                 table: "sessionRequests",
-                column: "subjectId",
-                unique: true);
+                column: "subjectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sessionRequests_teacherId",
@@ -661,9 +689,9 @@ namespace ScholaAi.Migrations
                 column: "teacherId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_teacherSubjects_teacherId",
-                table: "teacherSubjects",
-                column: "teacherId");
+                name: "IX_teachers_subjectId",
+                table: "teachers",
+                column: "subjectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_transactions_fromWalletId",
@@ -729,6 +757,9 @@ namespace ScholaAi.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "availability");
+
+            migrationBuilder.DropTable(
                 name: "chatMessages");
 
             migrationBuilder.DropTable(
@@ -739,9 +770,6 @@ namespace ScholaAi.Migrations
 
             migrationBuilder.DropTable(
                 name: "requestBroadcasts");
-
-            migrationBuilder.DropTable(
-                name: "teacherSubjects");
 
             migrationBuilder.DropTable(
                 name: "transactions");
@@ -762,10 +790,10 @@ namespace ScholaAi.Migrations
                 name: "students");
 
             migrationBuilder.DropTable(
-                name: "subjects");
+                name: "teachers");
 
             migrationBuilder.DropTable(
-                name: "teachers");
+                name: "subjects");
 
             migrationBuilder.DropTable(
                 name: "users");

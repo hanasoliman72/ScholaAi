@@ -23,7 +23,7 @@ namespace ScholaAi.DTOs.Teatcher
         public string college { get; set; }
         public string certificate { get; set; }
         public string? description { get; set; }
-        public string subjectName { get; set; }
+        public int subjectId { get; set; }
         [Required]
         public Gender gender { get; set; }
         [Required]

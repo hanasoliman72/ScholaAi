@@ -15,7 +15,7 @@ namespace ScholaAi.Models
         public string? details { get; set; }
 
         
-        [ForeignKey(nameof(logId))]
+        [ForeignKey(nameof(adminId))]
         public user? admin { get; set; }
         [ForeignKey(nameof(targetUserId))]
         public user? target { get; set; }

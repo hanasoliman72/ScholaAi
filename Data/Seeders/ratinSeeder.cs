@@ -11,8 +11,20 @@ namespace ScholaAi.Data.Seeders
             // =========================
             var sessionRequest1 = new sessionRequest
             {
-                studentId = 6,
-                teacherId = 10,
+                studentId = 3,
+                teacherId = 2,
+                subjectId = 1,
+                preferredDate = DateTime.Now.AddDays(-5),
+                status = requestStatus.Accepted,
+                description = "c++ tutoring session",
+                finalScheduledAt = DateTime.Now.AddDays(-5),
+                createdAt = DateTime.Now.AddDays(-10)
+            };
+
+            var sessionRequest2 = new sessionRequest
+            {
+                studentId = 3,
+                teacherId = 2,
                 subjectId = 2,
                 preferredDate = DateTime.Now.AddDays(-5),
                 status = requestStatus.Accepted,
@@ -21,15 +33,27 @@ namespace ScholaAi.Data.Seeders
                 createdAt = DateTime.Now.AddDays(-10)
             };
 
+            var sessionRequest3 = new sessionRequest
+            {
+                studentId = 4,
+                teacherId = 2,
+                subjectId = 1,
+                preferredDate = DateTime.Now.AddDays(-5),
+                status = requestStatus.Accepted,
+                description = "C++ tutoring session",
+                finalScheduledAt = DateTime.Now.AddDays(-5),
+                createdAt = DateTime.Now.AddDays(-10)
+            };
+
             context.sessionRequests.AddRange(
-                sessionRequest1
+                sessionRequest1, sessionRequest2, sessionRequest3
             );
             context.SaveChanges();
 
             // Load saved session requests
             var sessionRequests = context.sessionRequests
                 .OrderBy(sr => sr.createdAt)
-                .Take(1)
+                .Take(3)
                 .ToList();
 
             //Console.WriteLine(sessionRequests.Count);
@@ -38,22 +62,42 @@ namespace ScholaAi.Data.Seeders
             // =========================
             var session1 = new session
             {
-                requestId = sessionRequests[0].sessionId,
-                teacherId = 10,
+                requestId = sessionRequests[0].requestId,
+                teacherId = 2,
                 studentId = sessionRequests[0].studentId,
                 recordedSession = 3600,
                 summary = "Covered algebra basics, student understood well",
                 focusScore = 85
             };
 
-            context.sessions.AddRange(session1);
+            var session2 = new session
+            {
+                requestId = sessionRequests[1].requestId,
+                teacherId = 2,
+                studentId = sessionRequests[1].studentId,
+                recordedSession = 3600,
+                summary = "Covered algebra basics, student understood well",
+                focusScore = 85
+            };
+
+            var session3 = new session
+            {
+                requestId = sessionRequests[2].requestId,
+                teacherId = 2,
+                studentId = sessionRequests[2].studentId,
+                recordedSession = 3600,
+                summary = "Covered algebra basics, student understood well",
+                focusScore = 85
+            };
+
+            context.sessions.AddRange(session1,session2,session3);
             context.SaveChanges();
 
-            // Load saved sessions
-            //var sessions = context.sessions
-            //    .OrderBy(s => s.sessionId)
-            //    .Take(3)
-            //    .ToList();
+            //Load saved sessions
+           var sessions = context.sessions
+               .OrderBy(s => s.requestId)
+               .Take(3)
+               .ToList();
 
             //// =========================
             //// 3. RATINGS
@@ -62,7 +106,7 @@ namespace ScholaAi.Data.Seeders
             //{
             //    var rating1 = new rating
             //    {
-            //        sessionId = sessions[0].sessionId,
+            //        requestId = sessions[0].requestId,
             //        studentId = sessions[0].studentId,
             //        teacherId = sessions[0].teacherId,
             //        ratingValue = 5,
@@ -72,7 +116,7 @@ namespace ScholaAi.Data.Seeders
 
             //    var rating2 = new rating
             //    {
-            //        sessionId = sessions[1].sessionId,
+            //        requestId = sessions[1].requestId,
             //        studentId = sessions[1].studentId,
             //        teacherId = sessions[1].teacherId,
             //        ratingValue = 4,

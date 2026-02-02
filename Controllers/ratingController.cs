@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using ScholaAi.DTOs.Rating;
 using ScholaAi.Models;
 using ScholaAi.Services.Base;
+using ScholaAi.Mappings;
 
 namespace ScholaAi.Controllers
 {
@@ -36,7 +38,8 @@ namespace ScholaAi.Controllers
         public async Task<IActionResult> createRating(int sessionId, [FromBody] ratingCreateDto ratingCreateDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
+            var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
+            config.AssertConfigurationIsValid();
             try
             {
                 var studentId = getStudentIdFromToken();
@@ -45,7 +48,7 @@ namespace ScholaAi.Controllers
                 // Return status 201 Created(not 200 OK) - tells client a resource was created
                 // Add Location header -shows where to find the new resource(/ api / ratings / 12)
                 // Return the created resource -includes all the details in the response body
-                return CreatedAtAction(nameof(getRatingById), new { id = result.ratingId }, new
+                return CreatedAtAction(nameof(getRatingById), new { ratingId = result.ratingId }, new
                 {
                     success = true,
                     message = "Rating submitted successfully",
@@ -70,8 +73,7 @@ namespace ScholaAi.Controllers
 
         // PUT: api/rating/{ratingId}
         [HttpPut("{ratingId}")]
-        [AllowAnonymous]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> updateRating(int ratingId, [FromBody] ratingUpdateDto dto)
         {
             if (!ModelState.IsValid)
