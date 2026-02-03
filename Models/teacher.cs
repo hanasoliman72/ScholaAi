@@ -21,12 +21,10 @@ namespace ScholaAi.Models
         // Navigation
         public subject subject { get; set; }
         public user? user { get; set; }
-
-       // public ICollection<teacherSubject> teacherSubjects { get; set; } = new List<teacherSubject>();
         public ICollection<rating> ratings { get; set; } = new List<rating>();
         public ICollection<sessionRequest> sessionRequests { get; set; } = new List<sessionRequest>();
         public ICollection<requestBroadcast> requestBroadcasts { get; set; } = new List<requestBroadcast>();
         public ICollection<session> sessions { get; set; } = new List<session>();
-        
+
     }
 }

@@ -158,7 +158,10 @@ namespace ScholaAi.Migrations
             modelBuilder.Entity("ScholaAi.Models.adminLogs", b =>
                 {
                     b.Property<int>("logId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("logId"));
 
                     b.Property<int>("adminId")
                         .HasColumnType("int");
@@ -179,6 +182,8 @@ namespace ScholaAi.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("logId");
+
+                    b.HasIndex("adminId");
 
                     b.HasIndex("targetRequestId")
                         .IsUnique()
@@ -365,10 +370,20 @@ namespace ScholaAi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ratingId"));
 
+                    b.Property<string>("comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("ratingValue")
                         .HasColumnType("int");
 
                     b.Property<int>("sessionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("studentId")
                         .HasColumnType("int");
 
                     b.Property<int>("teacherId")
@@ -378,6 +393,8 @@ namespace ScholaAi.Migrations
 
                     b.HasIndex("sessionId")
                         .IsUnique();
+
+                    b.HasIndex("studentId");
 
                     b.HasIndex("teacherId");
 
@@ -621,7 +638,8 @@ namespace ScholaAi.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("email")
                         .IsRequired()
@@ -630,14 +648,16 @@ namespace ScholaAi.Migrations
 
                     b.Property<string>("firstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("gender")
                         .HasColumnType("int");
 
                     b.Property<string>("lastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("phone")
                         .IsRequired()
@@ -649,7 +669,8 @@ namespace ScholaAi.Migrations
 
                     b.Property<string>("userName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("userType")
                         .HasColumnType("int");
@@ -750,7 +771,7 @@ namespace ScholaAi.Migrations
                 {
                     b.HasOne("ScholaAi.Models.user", "admin")
                         .WithMany("admins")
-                        .HasForeignKey("logId")
+                        .HasForeignKey("adminId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -836,6 +857,10 @@ namespace ScholaAi.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("ScholaAi.Models.user", "student")
+                        .WithMany()
+                        .HasForeignKey("studentId");
+
                     b.HasOne("ScholaAi.Models.teacher", "teacher")
                         .WithMany("ratings")
                         .HasForeignKey("teacherId")
@@ -843,6 +868,8 @@ namespace ScholaAi.Migrations
                         .IsRequired();
 
                     b.Navigation("session");
+
+                    b.Navigation("student");
 
                     b.Navigation("teacher");
                 });

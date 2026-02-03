@@ -9,5 +9,4 @@
 //        public ICollection<teacher> teachers { get; set; }
 //        //public subject? subject { get; set; }
 //        public sessionRequest? sessionRequest { get; set; }
-//    }
 //}
