@@ -457,11 +457,11 @@ namespace ScholaAi.Migrations
 
             modelBuilder.Entity("ScholaAi.Models.sessionRequest", b =>
                 {
-                    b.Property<int>("sessionId")
+                    b.Property<int>("requestId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("sessionId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("requestId"));
 
                     b.Property<DateTime>("createdAt")
                         .HasColumnType("datetime2");
@@ -487,12 +487,11 @@ namespace ScholaAi.Migrations
                     b.Property<int?>("teacherId")
                         .HasColumnType("int");
 
-                    b.HasKey("sessionId");
+                    b.HasKey("requestId");
 
                     b.HasIndex("studentId");
 
-                    b.HasIndex("subjectId")
-                        .IsUnique();
+                    b.HasIndex("subjectId");
 
                     b.HasIndex("teacherId");
 
@@ -521,7 +520,6 @@ namespace ScholaAi.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("subjectId"));
 
                     b.Property<string>("description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("name")
@@ -549,6 +547,9 @@ namespace ScholaAi.Migrations
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("subjectId")
+                        .HasColumnType("int");
+
                     b.Property<string>("teachingExperience")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -563,22 +564,9 @@ namespace ScholaAi.Migrations
 
                     b.HasKey("userId");
 
+                    b.HasIndex("subjectId");
+
                     b.ToTable("teachers");
-                });
-
-            modelBuilder.Entity("ScholaAi.Models.teacherSubject", b =>
-                {
-                    b.Property<int>("subjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("teacherId")
-                        .HasColumnType("int");
-
-                    b.HasKey("subjectId", "teacherId");
-
-                    b.HasIndex("teacherId");
-
-                    b.ToTable("teacherSubjects");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.transaction", b =>
@@ -914,9 +902,9 @@ namespace ScholaAi.Migrations
                         .IsRequired();
 
                     b.HasOne("ScholaAi.Models.subject", "subject")
-                        .WithOne("sessionRequest")
-                        .HasForeignKey("ScholaAi.Models.sessionRequest", "subjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("sessionRequests")
+                        .HasForeignKey("subjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ScholaAi.Models.teacher", "teacher")
@@ -944,32 +932,21 @@ namespace ScholaAi.Migrations
 
             modelBuilder.Entity("ScholaAi.Models.teacher", b =>
                 {
+                    b.HasOne("ScholaAi.Models.subject", "subject")
+                        .WithMany("teachers")
+                        .HasForeignKey("subjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ScholaAi.Models.user", "user")
                         .WithOne("teacher")
                         .HasForeignKey("ScholaAi.Models.teacher", "userId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("user");
-                });
-
-            modelBuilder.Entity("ScholaAi.Models.teacherSubject", b =>
-                {
-                    b.HasOne("ScholaAi.Models.subject", "subject")
-                        .WithMany("teacherSubjects")
-                        .HasForeignKey("subjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ScholaAi.Models.teacher", "teacher")
-                        .WithMany("teacherSubjects")
-                        .HasForeignKey("teacherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("subject");
 
-                    b.Navigation("teacher");
+                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.transaction", b =>
@@ -1053,9 +1030,9 @@ namespace ScholaAi.Migrations
 
             modelBuilder.Entity("ScholaAi.Models.subject", b =>
                 {
-                    b.Navigation("sessionRequest");
+                    b.Navigation("sessionRequests");
 
-                    b.Navigation("teacherSubjects");
+                    b.Navigation("teachers");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.teacher", b =>
@@ -1067,8 +1044,6 @@ namespace ScholaAi.Migrations
                     b.Navigation("sessionRequests");
 
                     b.Navigation("sessions");
-
-                    b.Navigation("teacherSubjects");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.user", b =>

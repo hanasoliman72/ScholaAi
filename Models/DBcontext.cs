@@ -20,7 +20,7 @@ namespace ScholaAi.Models
         public DbSet<student>students { get; set; }
         public DbSet<subject>subjects { get; set; }
         public DbSet<teacher>teachers { get; set; }
-        public DbSet<teacherSubject>teacherSubjects { get; set; }
+        //public DbSet<teacherSubject>teacherSubjects { get; set; }
         public DbSet<transaction>transactions { get; set; }
         public DbSet<user>users { get; set; }
         public DbSet<wallet>wallets { get; set; }
@@ -190,8 +190,21 @@ namespace ScholaAi.Models
                 .WithMany(w => w.transactionsTo)
                 .HasForeignKey(t => t.toWalletId)
                 .OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<teacherSubject>()
-                .HasKey(r => new { r.subjectId, r.teacherId });
+            //modelBuilder.Entity<teacherSubject>()
+            //    .HasKey(r => new { r.subjectId, r.teacherId });
+
+            modelBuilder.Entity<teacher>()
+             .HasOne(t => t.subject)
+             .WithMany(s => s.teachers)
+             .HasForeignKey(t => t.subjectId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<sessionRequest>()
+               .HasOne(sr => sr.subject)
+               .WithMany(s => s.sessionRequests)
+               .HasForeignKey(sr => sr.subjectId)
+               .OnDelete(DeleteBehavior.NoAction);
+
         }
     }
 }

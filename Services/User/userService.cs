@@ -43,6 +43,7 @@ namespace ScholaAi.Services.User
                 firstName = nUser.firstName,
                 lastName = nUser.lastName,
                 phone = nUser.phone,
+                //subjectId = nUser.subjectId,
                 description = nUser.description,
                 gender = nUser.gender,
               
@@ -114,6 +115,7 @@ namespace ScholaAi.Services.User
                 certificate = nUser.certificate,
                 college = nUser.college,
                 teachingExperience = nUser.teachingExperience,
+                subjectId = nUser.subjectId,
 
             };
             await _teacherRepository.addAsync(teacher);

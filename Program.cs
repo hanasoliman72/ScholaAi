@@ -5,10 +5,14 @@ using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.Student;
 using ScholaAi.Repositories.Teacher;
+using ScholaAi.Repositories.sessions;
 using ScholaAi.Repositories.User;
 using ScholaAi.Services;
 using ScholaAi.Services.Base;
 using ScholaAi.Services.User;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ScholaAi
 {
@@ -25,18 +29,25 @@ namespace ScholaAi
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Myconection")));
 
             // Identity
-            builder.Services.AddIdentity<applicationUser, IdentityRole>()
+            builder.Services.AddIdentityCore<applicationUser>()
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<DBcontext>()
                 .AddDefaultTokenProviders();
 
+
             // Controllers
             builder.Services.AddControllers();
+
+            builder.Services.AddHttpContextAccessor();
+
 
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
             builder.Services.AddScoped<IUserService, userService>();
             builder.Services.AddScoped<IFileUploadService, fileUploadService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<ISessionRequestService, sessionRequestService>();
+
 
 
             // Repositories
@@ -44,6 +55,32 @@ namespace ScholaAi
             builder.Services.AddScoped<IStudentRepository, studentRepository>();
             builder.Services.AddScoped<ITeacherRepository, teacherRepository>();
             builder.Services.AddScoped<IAvailabilityRepository, availabilityRepository>();
+            builder.Services.AddScoped<IRequestBroadcastRepository, requestBroadcastRepository>();
+            builder.Services.AddScoped<ISessionRequestRepository, sessionRequestRepository>();
+
+
+            //JWT
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+            
+                    ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+                    ValidAudience = builder.Configuration["JWT:ValidAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secretkey"])
+                    )
+                };
+            });
 
 
             // Swagger
