@@ -13,7 +13,7 @@ namespace ScholaAi.Models
     public class sessionRequest
     {
         [Key]
-        public int sessionId { get; set; }
+        public int requestId { get; set; }
         public int? teacherId { get; set; }
         public int studentId { get; set; }
         public int subjectId { get; set; }
