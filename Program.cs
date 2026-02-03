@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using ScholaAi.Data.Seeders;
-using ScholaAi.Mappings;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
 using ScholaAi.Repositories.Base;
@@ -14,6 +11,9 @@ using ScholaAi.Services;
 using ScholaAi.Services.Base;
 using ScholaAi.Services.Rating;
 using ScholaAi.Services.User;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ScholaAi
 {
@@ -37,9 +37,6 @@ namespace ScholaAi
             // Controllers
             builder.Services.AddControllers();
 
-            // Automapper
-            builder.Services.AddAutoMapper(typeof(MappingProfile));
-
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
             builder.Services.AddScoped<IUserService, userService>();
@@ -54,6 +51,29 @@ namespace ScholaAi
             builder.Services.AddScoped<ITeacherRepository, teacherRepository>();
             builder.Services.AddScoped<IAvailabilityRepository, availabilityRepository>();
             builder.Services.AddScoped<IRatingRepository, ratingRepository>();
+
+            //JWT
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+                    ValidAudience = builder.Configuration["JWT:ValidAudience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secretkey"])
+                    )
+                };
+            });
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();

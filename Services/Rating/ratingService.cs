@@ -1,8 +1,7 @@
-﻿using AutoMapper;
+﻿using ScholaAi.Repositories.Base;
+using ScholaAi.Services.Base;
 using ScholaAi.DTOs.Rating;
 using ScholaAi.Models;
-using ScholaAi.Repositories.Base;
-using ScholaAi.Services.Base;
 
 namespace ScholaAi.Services.Rating
 {
@@ -10,19 +9,31 @@ namespace ScholaAi.Services.Rating
     {
         private readonly IRatingRepository _ratingRepository;
         private readonly IGenericRepository<session> _sessionRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<ratingService> _logger;
 
         public ratingService(
             IRatingRepository ratingRepository,
             IGenericRepository<session> sessionRepository,
-            IMapper mapper,
             ILogger<ratingService> logger)
         {
             _ratingRepository = ratingRepository;
             _sessionRepository = sessionRepository;
-            _mapper = mapper;
             _logger = logger;
+        }
+
+        // HELPER METHOD TO MAP FROM rating → ratingDto
+        private static ratingDto mapToDto(rating rating)
+        {
+            return new ratingDto
+            {
+                ratingId = rating.ratingId,
+                sessionId = rating.sessionId,
+                teacherId = rating.teacherId,
+                studentId = rating.studentId,
+                ratingValue = rating.ratingValue,
+                comment = rating.comment,
+                createdAt = rating.createdAt
+            };
         }
 
         public async Task<ratingDto> createRatingAsync(int sessionId, int? studentId, ratingCreateDto dto)
@@ -61,7 +72,7 @@ namespace ScholaAi.Services.Rating
                 await _ratingRepository.addAsync(rating);
                 _logger.LogInformation("Rating created for session {SessionId}", sessionId);
 
-                return _mapper.Map<ratingDto>(rating);
+                return mapToDto(rating);
             }
             catch (Exception ex)
             {
@@ -90,7 +101,7 @@ namespace ScholaAi.Services.Rating
                 await _ratingRepository.updateAsync(existingRating);
                 _logger.LogInformation("Rating {RatingId} updated", ratingId);
 
-                return _mapper.Map<ratingDto>(existingRating);
+                return mapToDto(existingRating);
             }
             catch (Exception ex)
             {
@@ -129,7 +140,7 @@ namespace ScholaAi.Services.Rating
             try
             {
                 var rating = await _ratingRepository.getByIdAsync(ratingId);
-                return rating != null ? _mapper.Map<ratingDto>(rating) : null;
+                return rating != null ? mapToDto(rating) : null;
             }
             catch (Exception ex)
             {
@@ -142,7 +153,8 @@ namespace ScholaAi.Services.Rating
         {
             try
             {
-                return await _ratingRepository.getBySessionIdAsync(sessionId);
+                var rating  = await _ratingRepository.getBySessionIdAsync(sessionId);
+                return mapToDto(rating);
             }
             catch (Exception ex)
             {
@@ -155,7 +167,17 @@ namespace ScholaAi.Services.Rating
         {
             try
             {
-                return await _ratingRepository.getByTeacherIdAsync(teacherId);
+                var ratings = await _ratingRepository.getByTeacherIdAsync(teacherId);
+                return ratings.Select(r => new ratingDto
+                {
+                    ratingId = r.ratingId,
+                    sessionId = r.sessionId,
+                    teacherId = r.teacherId,
+                    studentId = r.studentId,
+                    ratingValue = r.ratingValue,
+                    comment = r.comment,
+                    createdAt = r.createdAt
+                });
             }
             catch (Exception ex)
             {

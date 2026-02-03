@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using ScholaAi.DTOs.Rating;
+﻿using Microsoft.EntityFrameworkCore;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 
@@ -8,34 +6,29 @@ namespace ScholaAi.Repositories.Rating
 {
     public class ratingRepository : genericRepository<rating>, IRatingRepository
     {
-        private readonly IMapper _mapper;
-
-        public ratingRepository(DBcontext context, IMapper mapper) : base(context)
+        public ratingRepository(DBcontext context) : base(context)
         {
-            _mapper = mapper;
         }
 
         // GET RATING FOR SPECIFIC SESSION
-        public async Task<ratingDto?> getBySessionIdAsync(int sessionId)
+        public async Task<rating?> getBySessionIdAsync(int sessionId)
         {
             var rating = await _dbSet
                 .Include(r => r.session)
                 .Include(r => r.teacher)
                 .FirstOrDefaultAsync(r => r.sessionId == sessionId);
 
-            return rating != null ? _mapper.Map<ratingDto>(rating) : null;
+            return rating;
         }
 
         // GET ALL RATINGS FOR A TEACHER
-        public async Task<IEnumerable<ratingDto>> getByTeacherIdAsync(int teacherId)
+        public async Task<IEnumerable<rating>> getByTeacherIdAsync(int teacherId)
         {
-            var ratings = await _dbSet
+            return await _dbSet
                 .Where(r => r.teacherId == teacherId)
                 .Include(r => r.session)
                 .Include(r => r.teacher)
                 .ToListAsync();
-
-            return _mapper.Map<IEnumerable<ratingDto>>(ratings);
         }
 
         // GET AVERAGE RATING FOR A TEACHER

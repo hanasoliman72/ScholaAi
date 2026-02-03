@@ -1,12 +1,7 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ScholaAi.DTOs.Rating;
-using ScholaAi.Models;
 using ScholaAi.Services.Base;
-using ScholaAi.Mappings;
+using ScholaAi.DTOs.Rating;
 
 namespace ScholaAi.Controllers
 {
@@ -38,8 +33,6 @@ namespace ScholaAi.Controllers
         public async Task<IActionResult> createRating(int sessionId, [FromBody] ratingCreateDto ratingCreateDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
-            config.AssertConfigurationIsValid();
             try
             {
                 var studentId = getStudentIdFromToken();

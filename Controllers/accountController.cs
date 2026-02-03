@@ -214,36 +214,31 @@ namespace ScholaAi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-          
             var identityUser = await _userManager.FindByEmailAsync(userDto.email);
             if (identityUser == null)
                 return Unauthorized();
 
-            
             var isPasswordValid = await _userManager.CheckPasswordAsync(identityUser, userDto.password);
             if (!isPasswordValid)
                 return Unauthorized();
 
-            
-            var dbUser = await _userService
-                .GetUserByApplicationUserId(identityUser.Id);
-
+            var dbUser = await _userService.GetUserByApplicationUserId(identityUser.Id);
             if (dbUser == null)
                 return Unauthorized();
 
-          
+            // ✅ Claims
             var claims = new List<Claim>()
-            {
-            new Claim(ClaimTypes.Email, identityUser.Email ?? ""),
-            new Claim(ClaimTypes.NameIdentifier, identityUser.Id),
-            new Claim("UserType", dbUser.userType.ToString())
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, dbUser.userId.ToString()), // هنا استخدمنا userId
+        new Claim(ClaimTypes.Email, identityUser.Email ?? ""),
+        new Claim("UserType", dbUser.userType.ToString())
+    };
 
             var roles = await _userManager.GetRolesAsync(identityUser);
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
-            // 5️⃣ JWT
+            // ✅ JWT
             var secretKey = _configuration["JWT:Secretkey"];
             var validIssuer = _configuration["JWT:ValidIssuer"];
             var validAudience = _configuration["JWT:ValidAudience"];
@@ -264,7 +259,6 @@ namespace ScholaAi.Controllers
                 token = new JwtSecurityTokenHandler().WriteToken(token)
             });
         }
-
         // ========================
         // Forgot Password
         // ========================
