@@ -118,32 +118,34 @@ namespace ScholaAi.Controllers
         [HttpPost("register/teacher")]
         public async Task<IActionResult> registerTeacher(teacherRegisterDto userDto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Check if email already exists
+            var existingUser = await _userManager.FindByEmailAsync(userDto.email);
+            if (existingUser != null)
+                return BadRequest(new { message = "Email is already registered." });
+
+            applicationUser user = new applicationUser();
+            user.UserName = userDto.userName;
+            user.Email = userDto.email;
+            user.PhoneNumber = userDto.phone;
+
+            var result = await _userManager.CreateAsync(user, userDto.Password);
+
+            if (result.Succeeded)
             {
-                applicationUser user = new applicationUser();
-                user.UserName = userDto.userName;
-                user.Email = userDto.email;
-                user.PhoneNumber = userDto.phone;
+                await _userManager.AddToRoleAsync(user, "Teacher");
+                userDto.id = user.Id;
+                await _userService.registerTeacher(userDto);
 
-                var result = await _userManager.CreateAsync(user, userDto.Password);
-               
-
-                if (result.Succeeded)
-                { 
-                    await _userManager.AddToRoleAsync(user, "Teacher");
-                    userDto.id = user.Id;
-                    await _userService.registerTeacher(userDto);
-                   
-                    return Ok("You Registered Successfully");
-                }
-                else
-                {
-                    var errors = result.Errors.Select(e => e.Description);
-                    return BadRequest(new { message = "Registration failed", errors });
-                } 
-                   
+                return Ok("You Registered Successfully");
             }
-            return BadRequest(ModelState);
+            else
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return BadRequest(new { message = "Registration failed", errors });
+            }
         }
         //[HttpPost("login")]
         //public async Task<IActionResult> login(loginDto userDto)
