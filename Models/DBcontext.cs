@@ -59,12 +59,6 @@ namespace ScholaAi.Models
                 .HasForeignKey<adminLogs>(t => t.targetRequestId)
                  .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<sessionRequest>()
-              .HasOne(sr => sr.subject)
-              .WithMany(s => s.sessionRequests)
-              .HasForeignKey(sr => sr.subjectId)
-              .OnDelete(DeleteBehavior.NoAction);
-
             modelBuilder.Entity<student>()
                 .HasKey(s => s.userId); 
 
@@ -204,6 +198,13 @@ namespace ScholaAi.Models
              .WithMany(s => s.teachers)
              .HasForeignKey(t => t.subjectId)
              .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<sessionRequest>()
+               .HasOne(sr => sr.subject)
+               .WithMany(s => s.sessionRequests)
+               .HasForeignKey(sr => sr.subjectId)
+               .OnDelete(DeleteBehavior.NoAction);
+
         }
     }
 }

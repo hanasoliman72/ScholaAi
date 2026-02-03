@@ -43,6 +43,7 @@ namespace ScholaAi.Services.User
                 firstName = nUser.firstName,
                 lastName = nUser.lastName,
                 phone = nUser.phone,
+                //subjectId = nUser.subjectId,
                 description = nUser.description,
                 gender = nUser.gender,
               
