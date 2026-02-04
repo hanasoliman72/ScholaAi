@@ -8,6 +8,7 @@ using ScholaAi.Repositories.Teacher;
 using ScholaAi.Repositories.User;
 using ScholaAi.Services;
 using ScholaAi.Services.Base;
+using ScholaAi.Services.Teacher;
 using ScholaAi.Services.User;
 
 namespace ScholaAi
@@ -36,6 +37,8 @@ namespace ScholaAi
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
             builder.Services.AddScoped<userRegisterService>();
             builder.Services.AddScoped<IFileUploadService, fileUploadService>();
+            builder.Services.AddScoped<ITeacherProfileService, teacherProfileService>();
+
 
             // Repositories
             builder.Services.AddScoped<IUserRepository, userRepository>();

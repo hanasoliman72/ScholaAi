@@ -43,5 +43,6 @@ namespace ScholaAi.Repositories
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
         }
+        
     }
 }
