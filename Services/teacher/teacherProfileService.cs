@@ -51,8 +51,8 @@ namespace ScholaAi.Services.Teacher
                 .Where(t => t.user != null)
                 .Select(t => new teacherSearchResultDto
                 {
-                    teacherId = t.userId,
                     userName = t.user.userName,
+                    subject = t.subject.name,
                     college = t.college,
                     teachingExperience = t.teachingExperience,
                     profilePhotoURL = t.user.profilePhotoURL

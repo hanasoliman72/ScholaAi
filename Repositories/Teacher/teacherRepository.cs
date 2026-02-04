@@ -31,8 +31,7 @@ namespace ScholaAi.Repositories.Teacher
         {
             var query = _dbSet
                 .Include(t => t.user)
-                .Include(t => t.teacherSubjects)
-                    .ThenInclude(ts => ts.subject)
+                .Include(t => t.subject)
                 .AsQueryable();
 
             // 🔍 search by teacher name
@@ -46,8 +45,7 @@ namespace ScholaAi.Repositories.Teacher
             if (!string.IsNullOrWhiteSpace(subject))
             {
                 query = query.Where(t =>
-                    t.teacherSubjects.Any(ts =>
-                        ts.subject.name.Contains(subject)));
+                    t.subject.name.Contains(subject));
             }
 
             // 🔍 search by keyword (college / experience)
