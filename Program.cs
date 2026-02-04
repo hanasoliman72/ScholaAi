@@ -11,6 +11,7 @@ using ScholaAi.Repositories.User;
 using ScholaAi.Services;
 using ScholaAi.Services.Base;
 using ScholaAi.Services.Rating;
+using ScholaAi.Services.Teacher;
 using ScholaAi.Services.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -50,6 +51,7 @@ namespace ScholaAi
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ISessionRequestService, sessionRequestService>();
             builder.Services.AddScoped<IRatingService, ratingService>();
+            builder.Services.AddScoped<ITeacherProfileService, teacherProfileService>();
 
             // Repositories
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(genericRepository<>));
