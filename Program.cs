@@ -16,6 +16,7 @@ using ScholaAi.Services.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ScholaAi.Data.Seeders;
 
 namespace ScholaAi
 {
