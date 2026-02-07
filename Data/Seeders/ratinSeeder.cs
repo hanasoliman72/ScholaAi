@@ -93,39 +93,7 @@ namespace ScholaAi.Data.Seeders
             context.sessions.AddRange(session1,session2,session3);
             context.SaveChanges();
 
-            //Load saved sessions
-           var sessions = context.sessions
-               .OrderBy(s => s.requestId)
-               .Take(3)
-               .ToList();
-
-            //// =========================
-            //// 3. RATINGS
-            //// =========================
-            //if (!context.ratings.Any())
-            //{
-            //    var rating1 = new rating
-            //    {
-            //        requestId = sessions[0].requestId,
-            //        studentId = sessions[0].studentId,
-            //        teacherId = sessions[0].teacherId,
-            //        ratingValue = 5,
-            //        comment = "Excellent teacher! Very patient and explains well.",
-            //        createdAt = DateTime.Now.AddDays(-4)
-            //    };
-
-            //    var rating2 = new rating
-            //    {
-            //        requestId = sessions[1].requestId,
-            //        studentId = sessions[1].studentId,
-            //        teacherId = sessions[1].teacherId,
-            //        ratingValue = 4,
-            //        comment = "Good session, learned a lot about grammar.",
-            //        createdAt = DateTime.Now.AddDays(-2)
-            //    };
-            //    context.ratings.AddRange(rating1, rating2);
-            //    context.SaveChanges();
-            //}
+            
         }
     }
 }

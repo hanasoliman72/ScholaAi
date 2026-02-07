@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ScholaAi.Services.Base;
 using ScholaAi.DTOs.Rating;
+using ScholaAi.Services.Base;
+using System.Security.Claims;
 
 namespace ScholaAi.Controllers
 {
@@ -18,24 +19,15 @@ namespace ScholaAi.Controllers
             _logger = logger;
         }
 
-        // HELPER METHOD TO GET STUDENT ID FROM TOKEN
-        private int? getStudentIdFromToken()
-        {
-            var studentIdString = User.FindFirst("userId")?.Value;
-            if (studentIdString == null) return null;
-
-            return int.TryParse(studentIdString, out var studentId) ? studentId : null;
-        }
-
         // POST: api/rating/{sessionId}
         [HttpPost("{sessionId}")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> createRating(int sessionId, [FromBody] ratingCreateDto ratingCreateDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
-                var studentId = getStudentIdFromToken();
+                var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
                 var result = await _ratingService.createRatingAsync(sessionId, studentId, ratingCreateDto);
 
                 // Return status 201 Created(not 200 OK) - tells client a resource was created
@@ -74,8 +66,8 @@ namespace ScholaAi.Controllers
 
             try
             {
-                var studentId = getStudentIdFromToken();
-                
+                var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
                 var result = await _ratingService.updateRatingAsync(ratingId, studentId, dto);
 
                 if (result == null)
@@ -111,7 +103,7 @@ namespace ScholaAi.Controllers
         {
             try
             {
-                var studentId = getStudentIdFromToken();
+                var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
                 var result = await _ratingService.deleteRatingAsync(ratingId, studentId);
 
