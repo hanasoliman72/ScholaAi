@@ -3,23 +3,30 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
 {
-    public class adminLogs
+    public class AdminLogs
     {
         [Key]
-        public int logId { get; set; }
-        public int adminId { get; set; }
-        public int? targetType { get; set; }
-        public int? targetUserId { get; set; }
-        public int? targetRequestId { get; set; }
-        public DateTime createdAt { get; set; } = DateTime.Now;
-        public string? details { get; set; }
+        public int LogId { get; set; }
 
-        
-        [ForeignKey(nameof(adminId))]
-        public user? admin { get; set; }
-        [ForeignKey(nameof(targetUserId))]
-        public user? target { get; set; }
-        [ForeignKey(nameof(targetRequestId))]
-        public sessionRequest? targetRequest { get; set; }
+        [Required]
+        public string AdminId { get; set; }
+
+        public string? TargetUserId { get; set; }
+
+        public int? TargetType { get; set; }
+        public int? TargetRequestId { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public string? Details { get; set; }
+
+        [ForeignKey(nameof(AdminId))]
+        public ApplicationUser Admin { get; set; }
+
+        [ForeignKey(nameof(TargetUserId))]
+        public ApplicationUser? TargetUser { get; set; }
+
+        [ForeignKey(nameof(TargetRequestId))]
+        public SessionRequest? TargetRequest { get; set; }
     }
 }

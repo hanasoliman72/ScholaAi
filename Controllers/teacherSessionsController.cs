@@ -21,21 +21,21 @@ namespace ScholaAi.Controllers
         [HttpGet("GetMyRequests")]
         public async Task<IActionResult> GetMyRequests()
         {
-            int teacherId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            string teacherId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             var data = await _sessionService.GetTeacherRequests(teacherId);
             return Ok(data);
         }
         [HttpPost("{sessionId}/accept")]
         public async Task<IActionResult> Accept(int sessionId)
         {
-            int teacherId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            string teacherId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             await _sessionService.AcceptRequest(teacherId, sessionId);
             return Ok(new { message = "Request accepted" });
         }
         [HttpPost("{sessionId}/reject")]
         public async Task<IActionResult> Reject(int sessionId)
         {
-            int teacherId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            string teacherId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             await _sessionService.RejectRequest(teacherId, sessionId);
             return Ok(new { message = "Request rejected" });
         }

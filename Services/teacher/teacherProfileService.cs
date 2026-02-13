@@ -14,25 +14,25 @@ namespace ScholaAi.Services.Teacher
         }
 
         // ===============================
-        // Get Teacher Profile By ID
+        // Get Teacher Profile By ID (string ApplicationUserId)
         // ===============================
-        public async Task<teacherProfileDto?> GetTeacherProfileAsync(int teacherId)
+        public async Task<teacherProfileDto?> GetTeacherProfileAsync(string teacherId)
         {
             var teacher = await _teacherRepository.getByIdWithUserAsync(teacherId);
 
-            if (teacher == null || teacher.user == null)
+            if (teacher == null || teacher.ApplicationUser == null)
                 return null;
 
             return new teacherProfileDto
             {
-                userName = teacher.user.userName,
-                email = teacher.user.email,
-                firstName = teacher.user.firstName,
-                lastName = teacher.user.lastName,
-                description = teacher.user.description,
-                profilePhotoURL = teacher.user.profilePhotoURL,
-                college = teacher.college,
-                teachingExperience = teacher.teachingExperience
+                userName = teacher.ApplicationUser.UserName,
+                email = teacher.ApplicationUser.Email,
+                firstName = teacher.ApplicationUser.FirstName,
+                lastName = teacher.ApplicationUser.LastName,
+                description = teacher.ApplicationUser.Description,
+                profilePhotoURL = teacher.ApplicationUser.ProfilePhotoURL,
+                college = teacher.College,
+                teachingExperience = teacher.TeachingExperience
             };
         }
 
@@ -48,14 +48,14 @@ namespace ScholaAi.Services.Teacher
                 .SearchTeachersAsync(name, subject, keyword);
 
             return teachers
-                .Where(t => t.user != null)
+                .Where(t => t.ApplicationUser != null)
                 .Select(t => new teacherSearchResultDto
                 {
-                    userName = t.user.userName,
-                    subject = t.subject.name,
-                    college = t.college,
-                    teachingExperience = t.teachingExperience,
-                    profilePhotoURL = t.user.profilePhotoURL
+                    userName = t.ApplicationUser.UserName,
+                    subject = t.Subject.name,
+                    college = t.College,
+                    teachingExperience = t.TeachingExperience,
+                    profilePhotoURL = t.ApplicationUser.ProfilePhotoURL
                 })
                 .ToList();
         }

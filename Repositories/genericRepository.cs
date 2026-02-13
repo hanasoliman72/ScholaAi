@@ -16,7 +16,7 @@ namespace ScholaAi.Repositories
             _dbSet = _context.Set<T>();
         }
 
-        public virtual async Task addAsync(T entity)
+        public virtual async Task AddAsync(T entity)
         {
             _dbSet.Add(entity);
             await _context.SaveChangesAsync();
@@ -33,7 +33,7 @@ namespace ScholaAi.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public virtual async Task<T?> getByIdAsync(int id)
+        public virtual async Task<T?> getByIdAsync(string id)
         {
             return await _dbSet.FindAsync(id);
         }

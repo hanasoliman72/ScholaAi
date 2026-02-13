@@ -4,23 +4,38 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
 {
-    public class transaction
+    public class Transaction
     {
         [Key]
-        public int transactionId { get; set; }
-        public int fromWalletId { get; set; }
-        public int toWalletId { get; set; }
-        public int sessionId { get; set; }
-        [Precision(18, 4)]
-        public decimal amount { get; set; } = 0;
-        [Precision(18, 4)]
-        public decimal platformFee { get; set; }
-        public DateTime createdAt { get; set; }= DateTime.UtcNow;
+        public int TransactionId { get; set; }
 
-        public wallet? fromWallet { get; set; }
-        public wallet? toWallet { get; set; }
-        [ForeignKey(nameof(sessionId))]
-        public session? session { get; set; }
-        //public ICollection<sessionRequest> sessionRequests { get; set; } = new List<sessionRequest>();
+        // FK to Wallets (ApplicationUserId is string)
+        [Required]
+        public string FromWalletId { get; set; }
+
+        [Required]
+        public string ToWalletId { get; set; }
+
+        // FK to Session
+        [Required]
+        public int SessionId { get; set; }
+
+        [Precision(18, 4)]
+        public decimal Amount { get; set; } = 0;
+
+        [Precision(18, 4)]
+        public decimal PlatformFee { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation properties
+        [ForeignKey(nameof(FromWalletId))]
+        public Wallet FromWallet { get; set; }
+
+        [ForeignKey(nameof(ToWalletId))]
+        public Wallet ToWallet { get; set; }
+
+        [ForeignKey(nameof(SessionId))]
+        public Session Session { get; set; }
     }
 }

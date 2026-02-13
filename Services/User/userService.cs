@@ -1,207 +1,158 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
-using ScholaAi.DTOs.Teatcher;
-using ScholaAi.DTOs.User;
+using ScholaAi.DTOs.Teacher;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Services.Base;
 
 namespace ScholaAi.Services.User
 {
-    public class userService :IUserService 
+    public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
         private readonly IStudentRepository _studentRepository;
         private readonly ITeacherRepository _teacherRepository;
         private readonly IAvailabilityRepository _availabilityRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEmailService _emailService;
-        private readonly UserManager<applicationUser> _userManager;
-        public userService(
-            IUserRepository userRepository,
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public UserService(
             IStudentRepository studentRepository,
-            ITeacherRepository teacherRepository,IAvailabilityRepository availabilityRepository,
-            IEmailService emailService, IHttpContextAccessor httpContextAccessor,
-                UserManager<applicationUser> userManager)
+            ITeacherRepository teacherRepository,
+            IAvailabilityRepository availabilityRepository,
+            IEmailService emailService,
+            UserManager<ApplicationUser> userManager)
         {
-            _userRepository = userRepository;
             _studentRepository = studentRepository;
             _teacherRepository = teacherRepository;
             _availabilityRepository = availabilityRepository;
             _emailService = emailService;
-            _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
         }
-        public async Task<studentRegisterDto> registerStudent(studentRegisterDto nUser)
+
+        // ================= STUDENT =================
+        public async Task<StudentRegisterDto> RegisterStudent(StudentRegisterDto dto)
         {
-            
-            var newUser = new user
+            var user = new ApplicationUser
             {
-                userName = nUser.userName,
-                email = nUser.email,
-                firstName = nUser.firstName,
-                lastName = nUser.lastName,
-                phone = nUser.phone,
-                //subjectId = nUser.subjectId,
-                description = nUser.description,
-                gender = nUser.gender,
-              
-                profilePhotoURL = nUser.profilePhotoURL,
-                applicationUserId = nUser.id,
-                userType = ScholaAi.Models.Type.Student
-
-                //passwordHash = null // Password managed by Identity, not stored in this table
+                UserName = dto.UserName,
+                Email = dto.Email,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                PhoneNumber = dto.Phone,
+                Description = dto.Description,
+                Gender = dto.Gender,
+                ProfilePhotoURL = dto.ProfilePhotoURL,
+                UserType = UserType.Student
             };
 
-            await _userRepository.addAsync(newUser);
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+                throw new Exception(result.Errors.First().Description);
 
-            var student = new student
+            // إنشاء سجل الطالب
+            await _studentRepository.AddAsync(new Student
             {
-                userId =newUser.userId,
-                grade = nUser.grade,
-            };
-            await _studentRepository.addAsync(student);
+                ApplicationUserId = user.Id,
+                Grade = dto.Grade
+            });
 
-            if (nUser.availability != null && nUser.availability.Count > 0)
+            // إضافة availability لو موجودة
+            if (dto.Availability != null && dto.Availability.Any())
             {
-                var availabilityEntities = nUser.availability.Select(a => new availability
-                {
-                    Day = a.Day,
-                    TimeSlot = a.TimeSlot,
-                    userId = newUser.userId
-                }).ToList();
-
-                await _availabilityRepository.addRangeAsync(availabilityEntities);
+                await _availabilityRepository.AddRangeAsync(
+                    dto.Availability.Select(a => new Availability
+                    {
+                        ApplicationUserId = user.Id,
+                        day = a.Day,
+                        timeSlot = a.TimeSlot
+                    }).ToList()
+                );
             }
 
-            nUser.userId = newUser.userId;
-            return nUser;
+            return dto;
         }
 
-        public async Task<teacherRegisterDto> registerTeacher(teacherRegisterDto nUser)
+        // ================= TEACHER =================
+        public async Task<TeacherRegisterDto> RegisterTeacher(TeacherRegisterDto dto)
         {
-            //if (nUser == null)
-            //{
-            //    throw new ArgumentNullException(nameof(user));
-            //}
-            //var existingUser = await _userRepository.getByEmailAsync(nUser.email);
-            //if (existingUser != null)
-            //{
-            //    throw new Exception("Email already exists");
-            //}
-
-            var newUser = new user
+            var user = new ApplicationUser
             {
-                userName = nUser.userName,
-                email = nUser.email,
-                firstName = nUser.firstName,
-                lastName = nUser.lastName,
-                phone = nUser.phone,
-                description = nUser.description,
-                gender = nUser.gender,
-                
-                // Don't store passwordHash here - Identity handles it in applicationUser
-                // The applicationUserId links to Identity user
-                profilePhotoURL = nUser.profilePhotoURL,
-                applicationUserId = nUser.id,
-                userType = ScholaAi.Models.Type.Teacher
-                //passwordHash = null // Password managed by Identity, not stored in this table
+                UserName = dto.UserName,
+                Email = dto.Email,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                PhoneNumber = dto.Phone,
+                Description = dto.Description,
+                Gender = dto.Gender,
+                ProfilePhotoURL = dto.ProfilePhotoURL,
+                UserType = UserType.Teacher
             };
-            await _userRepository.addAsync(newUser);
-            var teacher = new teacher
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+                throw new Exception(result.Errors.First().Description);
+
+            // إنشاء سجل المعلم
+            await _teacherRepository.AddAsync(new Models.Teacher
             {
-                userId = newUser.userId,
-                certificate = nUser.certificate,
-                college = nUser.college,
-                teachingExperience = nUser.teachingExperience,
-                subjectId = nUser.subjectId,
+                ApplicationUserId = user.Id,
+                College = dto.College,
+                Certificate = dto.Certificate,
+                TeachingExperience = dto.TeachingExperience,
+                SubjectId = dto.SubjectId
+            });
 
-            };
-            await _teacherRepository.addAsync(teacher);
-
-            if (nUser.availability != null && nUser.availability.Count > 0)
+            // إضافة availability لو موجودة
+            if (dto.Availability != null && dto.Availability.Any())
             {
-                var availabilityEntities = nUser.availability.Select(a => new availability
-                {
-                    Day = a.Day,
-                    TimeSlot = a.TimeSlot,
-                    userId = newUser.userId
-                }).ToList();
-
-                await _availabilityRepository.addRangeAsync(availabilityEntities);
+                await _availabilityRepository.AddRangeAsync(
+                    dto.Availability.Select(a => new Availability
+                    {
+                        ApplicationUserId = user.Id,
+                        day = a.Day,
+                        timeSlot = a.TimeSlot
+                    }).ToList()
+                );
             }
-            nUser.userId = newUser.userId;
 
-            return nUser;
+            return dto;
         }
 
-        public async Task<user> GetUserByApplicationUserId(string appUserId)
-        {
-            return await _userRepository.getUserByApplicationUserId(appUserId);
-        }
-
-public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
-{
-    var userEntity = await _userRepository.getByEmailAsync(email);
-    if (userEntity == null) return false;
-
-    var identityUser = await _userManager.FindByIdAsync(userEntity.applicationUserId);
-    if (identityUser == null) return false;
-
-    var result = await _userRepository.resetPasswordAsync(identityUser, token, newPassword);
-    return result.Succeeded;
-}
-        // for password 
-
+        // ================= PASSWORD =================
         public async Task<bool> SendForgotPasswordEmailAsync(string email)
         {
-            var user = await _userRepository.getByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null) return false;
 
-            var appUser = await _userManager.FindByIdAsync(user.applicationUserId);
-            if (appUser == null) return false;
-
-            var token = await _userRepository.generatePasswordResetTokenAsync(appUser);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var resetLink = $"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}";
 
-            await _emailService.SendEmailAsync(email, "Reset Password", $"Click here to reset your password: {resetLink}");
+            await _emailService.SendEmailAsync(email, "Reset Password", resetLink);
             return true;
         }
 
-        // إعادة تعيين الباسورد باستخدام التوكن
-        //public async Task<bool> ResetPasswordAsync(resetPasswordDto dto)
-        //{
-        //    var user = await _userRepository.getByEmailAsync(dto.Email);
-        //    if (user == null) return false;
-
-        //    var appUser = await _userManager.FindByIdAsync(user.applicationUserId);
-        //    if (appUser == null) return false;
-
-        //    var result = await _userRepository.resetPasswordAsync(appUser, dto.Token, dto.NewPassword);
-        //    return result.Succeeded;
-        //}
         public async Task<IdentityResult> ResetPasswordAsync(resetPasswordDto dto)
         {
-            var user = await _userRepository.getByEmailAsync(dto.Email);
-            if (user == null) return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
 
-            var appUser = await _userManager.FindByIdAsync(user.applicationUserId);
-            if (appUser == null) return IdentityResult.Failed(new IdentityError { Description = "Identity user not found" });
-
-            var result = await _userRepository.resetPasswordAsync(appUser, dto.Token, dto.NewPassword);
-            return result; 
+            return await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
         }
 
-        // تغيير الباسورد بعد تسجيل الدخول
         public async Task<bool> ChangePasswordAsync(string applicationUserId, changePasswordDto dto)
         {
-            var appUser = await _userManager.FindByIdAsync(applicationUserId);
-            if (appUser == null) return false;
+            var user = await _userManager.FindByIdAsync(applicationUserId);
+            if (user == null) return false;
 
-            var result = await _userManager.ChangePasswordAsync(appUser, dto.currentPassword, dto.newPassword);
+            var result = await _userManager.ChangePasswordAsync(user, dto.currentPassword, dto.newPassword);
             return result.Succeeded;
         }
 
+        public async Task<ApplicationUser> GetUserByApplicationUserId(string id)
+        {
+            return await _userManager.FindByIdAsync(id);
+        }
     }
 }

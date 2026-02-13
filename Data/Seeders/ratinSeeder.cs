@@ -2,6 +2,11 @@
 
 namespace ScholaAi.Data.Seeders
 {
+    /// <summary>
+    /// Simple seed helper for demo data around sessions / ratings.
+    /// NOTE: This assumes string-based Identity keys and the new
+    /// PascalCase properties on the models.
+    /// </summary>
     public class ratingSeeder
     {
         public static void SeedRatingData(DBcontext context)
@@ -9,91 +14,90 @@ namespace ScholaAi.Data.Seeders
             // =========================
             // 1. SESSION REQUESTS
             // =========================
-            var sessionRequest1 = new sessionRequest
+            // These IDs are sample string user IDs; adjust to real ones
+            // if you wire this seeder into your startup.
+            var sessionRequest1 = new SessionRequest
             {
-                studentId = 3,
-                teacherId = 2,
-                subjectId = 1,
-                preferredDate = DateTime.Now.AddDays(-5),
-                status = requestStatus.Accepted,
-                description = "c++ tutoring session",
-                finalScheduledAt = DateTime.Now.AddDays(-5),
-                createdAt = DateTime.Now.AddDays(-10)
+                StudentId = "3",
+                TeacherId = "2",
+                SubjectId = 1,
+                PreferredDate = DateTime.UtcNow.AddDays(-5),
+                Status = RequestStatus.Accepted,
+                Description = "c++ tutoring Session",
+                FinalScheduledAt = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = DateTime.UtcNow.AddDays(-10)
             };
 
-            var sessionRequest2 = new sessionRequest
+            var sessionRequest2 = new SessionRequest
             {
-                studentId = 3,
-                teacherId = 2,
-                subjectId = 2,
-                preferredDate = DateTime.Now.AddDays(-5),
-                status = requestStatus.Accepted,
-                description = "Math tutoring session",
-                finalScheduledAt = DateTime.Now.AddDays(-5),
-                createdAt = DateTime.Now.AddDays(-10)
+                StudentId = "3",
+                TeacherId = "2",
+                SubjectId = 2,
+                PreferredDate = DateTime.UtcNow.AddDays(-5),
+                Status = RequestStatus.Accepted,
+                Description = "Math tutoring Session",
+                FinalScheduledAt = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = DateTime.UtcNow.AddDays(-10)
             };
 
-            var sessionRequest3 = new sessionRequest
+            var sessionRequest3 = new SessionRequest
             {
-                studentId = 4,
-                teacherId = 2,
-                subjectId = 1,
-                preferredDate = DateTime.Now.AddDays(-5),
-                status = requestStatus.Accepted,
-                description = "C++ tutoring session",
-                finalScheduledAt = DateTime.Now.AddDays(-5),
-                createdAt = DateTime.Now.AddDays(-10)
+                StudentId = "4",
+                TeacherId = "2",
+                SubjectId = 1,
+                PreferredDate = DateTime.UtcNow.AddDays(-5),
+                Status = RequestStatus.Accepted,
+                Description = "C++ tutoring Session",
+                FinalScheduledAt = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = DateTime.UtcNow.AddDays(-10)
             };
 
-            context.sessionRequests.AddRange(
+            context.SessionRequests.AddRange(
                 sessionRequest1, sessionRequest2, sessionRequest3
             );
             context.SaveChanges();
 
-            // Load saved session requests
-            var sessionRequests = context.sessionRequests
-                .OrderBy(sr => sr.createdAt)
+            // Load saved Session requests
+            var sessionRequests = context.SessionRequests
+                .OrderBy(sr => sr.CreatedAt)
                 .Take(3)
                 .ToList();
 
-            //Console.WriteLine(sessionRequests.Count);
             // =========================
             // 2. SESSIONS
             // =========================
-            var session1 = new session
+            var session1 = new Session
             {
-                requestId = sessionRequests[0].requestId,
-                teacherId = 2,
-                studentId = sessionRequests[0].studentId,
-                recordedSession = 3600,
-                summary = "Covered algebra basics, student understood well",
-                focusScore = 85
+                RequestId = sessionRequests[0].RequestId,
+                TeacherId = "2",
+                StudentId = sessionRequests[0].StudentId,
+                RecordedSession = 3600,
+                Summary = "Covered algebra basics, Student understood well",
+                FocusScore = 85
             };
 
-            var session2 = new session
+            var session2 = new Session
             {
-                requestId = sessionRequests[1].requestId,
-                teacherId = 2,
-                studentId = sessionRequests[1].studentId,
-                recordedSession = 3600,
-                summary = "Covered algebra basics, student understood well",
-                focusScore = 85
+                RequestId = sessionRequests[1].RequestId,
+                TeacherId = "2",
+                StudentId = sessionRequests[1].StudentId,
+                RecordedSession = 3600,
+                Summary = "Covered algebra basics, Student understood well",
+                FocusScore = 85
             };
 
-            var session3 = new session
+            var session3 = new Session
             {
-                requestId = sessionRequests[2].requestId,
-                teacherId = 2,
-                studentId = sessionRequests[2].studentId,
-                recordedSession = 3600,
-                summary = "Covered algebra basics, student understood well",
-                focusScore = 85
+                RequestId = sessionRequests[2].RequestId,
+                TeacherId = "2",
+                StudentId = sessionRequests[2].StudentId,
+                RecordedSession = 3600,
+                Summary = "Covered algebra basics, Student understood well",
+                FocusScore = 85
             };
 
-            context.sessions.AddRange(session1,session2,session3);
+            context.Sessions.AddRange(session1, session2, session3);
             context.SaveChanges();
-
-            
         }
     }
 }

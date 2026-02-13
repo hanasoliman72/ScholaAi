@@ -2,40 +2,55 @@
 using ScholaAi.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace ScholaAi.DTOs.Teatcher
+namespace ScholaAi.DTOs.Teacher
 {
-    public class teacherRegisterDto
+    public class TeacherRegisterDto
     {
-        public int userId { get; set; }
-        public string id { get; set; } // Identity user ID (applicationUserId)
-        public string userName { get; set; }
+        // ===== Identity =====
+        [Required]
+        public string UserName { get; set; }
 
-        public string? profilePhotoURL { get; set; }
-        public string firstName { get; set; }
-        public string lastName { get; set; }
-        [Required]
-        [EmailAddress]
-        [MaxLength(100)]
-        public string email { get; set; }
-        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
-        [MaxLength(20)]
-        public string phone { get; set; } 
-        public string college { get; set; }
-        public string certificate { get; set; }
-        public int subjectId { get; set; }
-        public string? description { get; set; }
-        [Required]
-        public Gender gender { get; set; }
-        [Required]
-        public string teachingExperience { get; set; }
-        [MinLength(1, ErrorMessage = "Select at least 1 time slot")]
-        public List<availabilityDto> availability { get; set; }
-        [Required]
-        [MinLength(6)]
+        [Required, EmailAddress, MaxLength(100)]
+        public string Email { get; set; }
+
+        [Required, MinLength(6)]
         public string Password { get; set; }
-        [Required(ErrorMessage = "Confirm Password is required")]
-        [Compare("Password", ErrorMessage = "Passwords do not match")]
+
+        [Required, Compare("Password")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
+
+        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$")]
+        [MaxLength(20)]
+        public string Phone { get; set; }
+
+        // ===== Profile =====
+        [Required]
+        public string FirstName { get; set; }
+
+        [Required]
+        public string LastName { get; set; }
+
+        [Required]
+        public Gender Gender { get; set; }
+
+        public string? Description { get; set; }
+        public string? ProfilePhotoURL { get; set; }
+
+        // ===== Teacher =====
+        [Required]
+        public string College { get; set; }
+
+        [Required]
+        public string Certificate { get; set; }
+
+       
+        public string TeachingExperience { get; set; }
+
+        public int SubjectId { get; set; }
+
+        // ===== Availability =====
+        [MinLength(1, ErrorMessage = "Select at least 1 time slot")]
+        public List<availabilityDto> Availability { get; set; } = new List<availabilityDto>();
     }
 }

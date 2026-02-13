@@ -3,28 +3,36 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ScholaAi.Models
 {
-    public class teacher
+    public class Teacher
     {
         [Key]
-        public int userId { get; set; }
-        public string college { get; set; }
-        public string? description { get; set; }
-        public string certificate { get; set; }
-        public string teachingExperience { get; set; }
+        public string ApplicationUserId { get; set; }
+
+        [Required]
+        public string College { get; set; }
+
+        public string? Description { get; set; }
+
+        [Required]
+        public string Certificate { get; set; }
+
+        [Required]
+        public string TeachingExperience { get; set; }
+
         [Precision(18, 4)]
-        public decimal totalHoursTaught { get; set; } = 0;
+        public decimal TotalHoursTaught { get; set; } = 0;
+
         [Precision(18, 4)]
-        public decimal totalRates { get; set; } = 0;
+        public decimal TotalRates { get; set; } = 0;
 
-        public int subjectId { get; set; }
+        public int SubjectId { get; set; }
+        public Subject Subject { get; set; }
 
-        // Navigation
-        public subject subject { get; set; }
-        public user? user { get; set; }
-        public ICollection<rating> ratings { get; set; } = new List<rating>();
-        public ICollection<sessionRequest> sessionRequests { get; set; } = new List<sessionRequest>();
-        public ICollection<requestBroadcast> requestBroadcasts { get; set; } = new List<requestBroadcast>();
-        public ICollection<session> sessions { get; set; } = new List<session>();
+        public ApplicationUser ApplicationUser { get; set; }
 
+        public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
+        public ICollection<SessionRequest> SessionRequests { get; set; } = new List<SessionRequest>();
+        public ICollection<RequestBroadcast> RequestBroadcasts { get; set; } = new List<RequestBroadcast>();
+        public ICollection<Session> Sessions { get; set; } = new List<Session>();
     }
 }

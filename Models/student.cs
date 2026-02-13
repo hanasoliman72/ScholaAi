@@ -2,14 +2,16 @@
 
 namespace ScholaAi.Models
 {
-    public class student
+    public class Student
     {
         [Key]
-        public int userId { get; set; }
-        public int grade { get; set; }
-        public user? user { get; set; }
-        public ICollection<session> sessions { get; set; } = new List<session>();
-        public ICollection<sessionRequest> requests { get; set; }= new List<sessionRequest>();
+        public string ApplicationUserId { get; set; }
 
+        public int Grade { get; set; }
+
+        public ApplicationUser ApplicationUser { get; set; }
+
+        public ICollection<Session> Sessions { get; set; } = new List<Session>();
+        public ICollection<SessionRequest> Requests { get; set; } = new List<SessionRequest>();
     }
 }

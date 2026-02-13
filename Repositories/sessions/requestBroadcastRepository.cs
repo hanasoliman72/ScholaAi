@@ -4,7 +4,7 @@ using ScholaAi.Models;
 using ScholaAi.Repositories;
 using ScholaAi.Repositories.Base;
 
-public class requestBroadcastRepository : genericRepository<requestBroadcast>, IRequestBroadcastRepository
+public class requestBroadcastRepository : genericRepository<RequestBroadcast>, IRequestBroadcastRepository
 {
     private readonly DBcontext _context;
 
@@ -13,56 +13,57 @@ public class requestBroadcastRepository : genericRepository<requestBroadcast>, I
         _context = context;
     }
 
-    public async Task Add(requestBroadcast b)
+    public async Task Add(RequestBroadcast b)
     {
-        await _context.requestBroadcasts.AddAsync(b); 
+        await _context.RequestBroadcasts.AddAsync(b); 
     }
 
-    public async Task Accept(int teacherId, int sessionId)
+    public async Task Accept(string teacherId, int sessionId)
     {
-        var broadcast = await _context.requestBroadcasts
-            .FirstOrDefaultAsync(b => b.teacherId == teacherId && b.requestId == sessionId);
+        var broadcast = await _context.RequestBroadcasts
+            .FirstOrDefaultAsync(b => b.TeacherId == teacherId && b.RequestId == sessionId);
 
         if (broadcast != null)
-            broadcast.isAccepted = true;
+            broadcast.IsAccepted = true;
     }
 
-    public async Task Remove(int teacherId, int sessionId)
+    public async Task Remove(string teacherId, int sessionId)
     {
-        var broadcast = await _context.requestBroadcasts
-            .FirstOrDefaultAsync(b => b.teacherId == teacherId && b.requestId == sessionId);
+        var broadcast = await _context.RequestBroadcasts
+            .FirstOrDefaultAsync(b => b.TeacherId == teacherId && b.RequestId == sessionId);
 
         if (broadcast != null)
-            _context.requestBroadcasts.Remove(broadcast);
+            _context.RequestBroadcasts.Remove(broadcast);
     }
 
-    public async Task RemoveOthers(int sessionId, int teacherId)
+    public async Task RemoveOthers(int sessionId, string teacherId)
     {
-        var others = await _context.requestBroadcasts
-            .Where(b => b.requestId == sessionId && b.teacherId != teacherId)
+        var others = await _context.RequestBroadcasts
+            .Where(b => b.RequestId == sessionId && b.TeacherId != teacherId)
             .ToListAsync();
 
-        _context.requestBroadcasts.RemoveRange(others);
+        _context.RequestBroadcasts.RemoveRange(others);
     }
 
-    public async Task<List<teacherRequestDto>> GetForTeacher(int teacherId)
+    public async Task<List<teacherRequestDto>> GetForTeacher(string teacherId)
     {
-        return await _context.requestBroadcasts
-            .Where(b => b.teacherId == teacherId && b.isAccepted == false)
-            .Include(b => b.teacherSession)
-                .ThenInclude(r => r.student)
-                    .ThenInclude(s => s.user)
-            .Include(b => b.teacherSession)
-                .ThenInclude(r => r.subject)
+        return await _context.RequestBroadcasts
+            .Where(b => b.TeacherId == teacherId && b.IsAccepted == false)
+            .Include(b => b.TeacherSession)
+                .ThenInclude(r => r.Student)  // Stop here - Student is already ApplicationUser
+            .Include(b => b.TeacherSession)
+                .ThenInclude(r => r.Subject)
             .Select(b => new teacherRequestDto
             {
-                sessionId = b.requestId,
-                studentName = b.teacherSession.student.user.firstName + " " +
-                              b.teacherSession.student.user.lastName,
-                subject = b.teacherSession.subject.name,
-                preferredDate = b.teacherSession.preferredDate,
-                description = b.teacherSession.description
+                sessionId = b.RequestId,
+                studentName =
+                    b.TeacherSession.Student.FirstName + " " +  // Direct access
+                    b.TeacherSession.Student.LastName,
+                subject = b.TeacherSession.Subject.name,
+                preferredDate = b.TeacherSession.PreferredDate,
+                description = b.TeacherSession.Description
             })
             .ToListAsync();
     }
+
 }

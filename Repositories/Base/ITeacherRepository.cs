@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 
 namespace ScholaAi.Repositories.Base
 {
-    public interface ITeacherRepository : IGenericRepository<teacher>
+    public interface ITeacherRepository : IGenericRepository<Models.Teacher>
     {
-        // ✅ تجيب teacher ومعاه بيانات user
-        Task<teacher?> getByIdWithUserAsync(int teacherId);
+        // ✅ تجيب Teacher ومعاه بيانات ApplicationUser
+        Task<Models.Teacher?> getByIdWithUserAsync(string teacherId);
 
-        // ✅ search عن teacher بالاسم أو المادة أو كلمة مفتاحية
-        Task<List<teacher>> SearchTeachersAsync(
+        // ✅ search عن Teacher بالاسم أو المادة أو كلمة مفتاحية
+        Task<List<Models.Teacher>> SearchTeachersAsync(
             string? name,
             string? subject,
             string? keyword);

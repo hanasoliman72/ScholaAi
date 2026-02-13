@@ -18,7 +18,7 @@ namespace ScholaAi.Controllers
         // ✅ Get Teacher Profile by ID
         // ===============================
         [HttpGet("{teacherId}")]
-        public async Task<IActionResult> GetProfile(int teacherId)
+        public async Task<IActionResult> GetProfile(string teacherId)
         {
             var profile = await _teacherProfileService.GetTeacherProfileAsync(teacherId);
 
@@ -33,7 +33,7 @@ namespace ScholaAi.Controllers
         // ===============================
         // ✅ Student Search Teachers
         // ===============================
-        // api/teacherProfile/search?name=&subject=&keyword=
+        // api/teacherProfile/search?name=&Subject=&keyword=
         [HttpGet("search")]
         public async Task<IActionResult> SearchTeachers(
             [FromQuery] string? name,

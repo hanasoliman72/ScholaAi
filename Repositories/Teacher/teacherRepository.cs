@@ -4,56 +4,50 @@ using ScholaAi.Repositories.Base;
 
 namespace ScholaAi.Repositories.Teacher
 {
-    public class teacherRepository : genericRepository<teacher>, ITeacherRepository
+    public class teacherRepository : genericRepository<Models.Teacher>, ITeacherRepository
     {
         public teacherRepository(DBcontext context) : base(context)
         {
         }
 
-        public override async Task addAsync(teacher entity)
+        public override async Task AddAsync(Models.Teacher entity)
         {
-            await base.addAsync(entity);
+            await base.AddAsync(entity);
         }
 
-        // ✅ Get teacher by id ومعاه user (شغالة زي ما هي)
-        public async Task<teacher?> getByIdWithUserAsync(int teacherId)
+        public async Task<Models.Teacher?> getByIdWithUserAsync(string teacherId)
         {
             return await _dbSet
-                .Include(t => t.user)
-                .FirstOrDefaultAsync(t => t.userId == teacherId);
+                .Include(t => t.ApplicationUser)
+                .FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
         }
-
-        // ✅ Search teachers (Student search)
-        public async Task<List<teacher>> SearchTeachersAsync(
+        public async Task<List<Models.Teacher>> SearchTeachersAsync(
             string? name,
             string? subject,
             string? keyword)
         {
             var query = _dbSet
-                .Include(t => t.user)
-                .Include(t => t.subject)
+                .Include(t => t.ApplicationUser)
+                .Include(t => t.Subject)
                 .AsQueryable();
 
-            // 🔍 search by teacher name
             if (!string.IsNullOrWhiteSpace(name))
             {
                 query = query.Where(t =>
-                    t.user.userName.Contains(name));
+                    t.ApplicationUser.UserName.Contains(name));
             }
 
-            // 🔍 search by subject
             if (!string.IsNullOrWhiteSpace(subject))
             {
                 query = query.Where(t =>
-                    t.subject.name.Contains(subject));
+                    t.Subject.name.Contains(subject));
             }
 
-            // 🔍 search by keyword (college / experience)
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 query = query.Where(t =>
-                    t.college.Contains(keyword) ||
-                    t.teachingExperience.Contains(keyword));
+                    t.College.Contains(keyword) ||
+                    t.TeachingExperience.Contains(keyword));
             }
 
             return await query.ToListAsync();

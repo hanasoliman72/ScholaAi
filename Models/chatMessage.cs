@@ -3,20 +3,28 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
 {
-    public class chatMessage
+    public class ChatMessage
     {
         [Key]
-        public int messageId { get; set; }
-        public int senderId { get; set; }
-        public int receiverId { get; set; }
-        public string messageText { get; set; }
-        public string? attachmentURL { get; set; }
-        public bool isRead { get; set; } = false;
-        public DateTime sentAt { get; set; } = DateTime.MinValue;
+        public int MessageId { get; set; }
 
-        [ForeignKey(nameof(senderId))]
-        public user? sender { get; set; }
-        [ForeignKey(nameof(receiverId))]
-        public user? receiver { get; set; }
+        [Required]
+        public string SenderId { get; set; }
+
+        [Required]
+        public string ReceiverId { get; set; }
+
+        public string MessageText { get; set; }
+        public string? AttachmentURL { get; set; }
+
+        public bool IsRead { get; set; } = false;
+
+        public DateTime SentAt { get; set; } = DateTime.UtcNow;
+
+        [ForeignKey(nameof(SenderId))]
+        public ApplicationUser Sender { get; set; }
+
+        [ForeignKey(nameof(ReceiverId))]
+        public ApplicationUser Receiver { get; set; }
     }
 }

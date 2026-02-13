@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using ScholaAi.DTOs;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
+using ScholaAi.DTOs.Teacher;
 using ScholaAi.DTOs.Teatcher;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
@@ -23,38 +24,38 @@ namespace ScholaAi.Controllers
     public class accountController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly UserManager<applicationUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         //private readonly IPasswordService _passwordService;
-        public accountController(IUserService userService, UserManager<applicationUser> userManager,IConfiguration configuration )
+        public accountController(IUserService userService, UserManager<ApplicationUser> userManager,IConfiguration configuration )
         {
             _userService = userService;
             _userManager = userManager;
             _configuration = configuration;
         }
         //private readonly userRegisterService userRegisterService;
-        [HttpPost("register/student")]
+        [HttpPost("register/Student")]
 
         //public async Task <IActionResult> registerStudent(studentRegisterDto userDto)
         //{
 
         //    if (ModelState.IsValid)
         //    {
-        //        //applicationUser user = new applicationUser();
-        //        //user.UserName = userDto.userName;
-        //        //user.Email = userDto.email;
-        //        //user.PhoneNumber = userDto.phone;
+        //        //App ApplicationUser = new App();
+        //        //ApplicationUser.UserName = userDto.userName;
+        //        //ApplicationUser.Email = userDto.email;
+        //        //ApplicationUser.PhoneNumber = userDto.phone;
 
 
-        //        ////user.PasswordHash = userDto.passwordHash;
-        //        //IdentityResult result =await _userManager.CreateAsync(user,userDto.passwordHash);
+        //        ////ApplicationUser.PasswordHash = userDto.passwordHash;
+        //        //IdentityResult result =await _userManager.CreateAsync(ApplicationUser,userDto.passwordHash);
         //        //if (result.Succeeded)
         //        //{
-        //        //    userDto.id =user.Id;
+        //        //    userDto.id =ApplicationUser.Id;
         //        //   await _userRegisterService.registerStudent(userDto);
 
         //        //    return Ok("You Registerd Succefully");
-        //        applicationUser identityUser = new applicationUser
+        //        App identityUser = new App
         //        {
         //            UserName = userDto.userName,
         //            Email = userDto.email,
@@ -82,21 +83,21 @@ namespace ScholaAi.Controllers
 
         //}
 
-        public async Task<IActionResult> registerStudent(studentRegisterDto userDto)
+        public async Task<IActionResult> registerStudent(StudentRegisterDto userDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             // Check if email already exists
-            var existingUser = await _userManager.FindByEmailAsync(userDto.email);
+            var existingUser = await _userManager.FindByEmailAsync(userDto.Email);
             if (existingUser != null)
                 return BadRequest(new { message = "Email is already registered." });
 
-            applicationUser identityUser = new applicationUser
+            ApplicationUser identityUser = new ApplicationUser
             {
-                UserName = userDto.userName,
-                Email = userDto.email,
-                PhoneNumber = userDto.phone
+                UserName = userDto.UserName,
+                Email = userDto.Email,
+                PhoneNumber = userDto.Phone
             };
 
             var result = await _userManager.CreateAsync(identityUser, userDto.Password);
@@ -108,36 +109,36 @@ namespace ScholaAi.Controllers
                 return BadRequest(new { message = "Registration failed", errors });
             }
             await _userManager.AddToRoleAsync(identityUser, "Student");
-            userDto.id = identityUser.Id;
+            //userDto.id = identityUser.Id;
 
-            await _userService.registerStudent(userDto);
+            await _userService.RegisterStudent(userDto);
 
             return Ok("Registered Successfully");
         }
 
-        [HttpPost("register/teacher")]
-public async Task<IActionResult> registerTeacher(teacherRegisterDto userDto)
+        [HttpPost("register/Teacher")]
+public async Task<IActionResult> registerTeacher(TeacherRegisterDto userDto)
 {
     if (!ModelState.IsValid)
         return BadRequest(ModelState);
 
     // Check if email already exists
-    var existingUser = await _userManager.FindByEmailAsync(userDto.email);
+    var existingUser = await _userManager.FindByEmailAsync(userDto.Email);
     if (existingUser != null)
         return BadRequest(new { message = "Email is already registered." });
 
-        applicationUser user = new applicationUser();
-        user.UserName = userDto.userName;
-        user.Email = userDto.email;
-        user.PhoneNumber = userDto.phone;
+        ApplicationUser user = new ApplicationUser();
+        user.UserName = userDto.UserName;
+        user.Email = userDto.Email;
+        user.PhoneNumber = userDto.Phone;
 
         var result = await _userManager.CreateAsync(user, userDto.Password);
       
         if (result.Succeeded)
         { 
             await _userManager.AddToRoleAsync(user, "Teacher");
-            userDto.id = user.Id;
-            await _userService.registerTeacher(userDto);
+            //userDto.id = user.Id;
+            await _userService.RegisterTeacher(userDto);
            
             return Ok("You Registered Successfully");
         }
@@ -152,22 +153,22 @@ public async Task<IActionResult> registerTeacher(teacherRegisterDto userDto)
         //{
         //    if (ModelState.IsValid)
         //    {
-        //        applicationUser user = await _userManager.FindByEmailAsync(userDto.email);
-        //        //var user = await _userRegisterService.getUserByApplicationUserId(user.Id);
+        //        App ApplicationUser = await _userManager.FindByEmailAsync(userDto.email);
+        //        //var ApplicationUser = await _userRegisterService.getUserByApplicationUserId(ApplicationUser.Id);
 
-        //        if (user != null)
+        //        if (ApplicationUser != null)
         //        {
-        //            bool found = await _userManager.CheckPasswordAsync(user, userDto.password);
+        //            bool found = await _userManager.CheckPasswordAsync(ApplicationUser, userDto.password);
         //            if (found)
         //            {
         //                //claims tokens 
         //                var claims = new List<Claim>()
         //                {
-        //                    new Claim(ClaimTypes.Email, user.Email ?? ""),
-        //                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+        //                    new Claim(ClaimTypes.Email, ApplicationUser.Email ?? ""),
+        //                    new Claim(ClaimTypes.NameIdentifier, ApplicationUser.Id),
 
         //                };
-        //                var roles = await _userManager.GetRolesAsync(user);
+        //                var roles = await _userManager.GetRolesAsync(ApplicationUser);
         //                foreach (var role in roles)
         //                {
         //                    claims.Add(new Claim(ClaimTypes.Role, role));
@@ -286,9 +287,9 @@ public async Task<IActionResult> registerTeacher(teacherRegisterDto userDto)
             // ✅ Claims
             var claims = new List<Claim>()
     {
-        new Claim(ClaimTypes.NameIdentifier, dbUser.userId.ToString()), // هنا استخدمنا userId
+        new Claim(ClaimTypes.NameIdentifier, dbUser.Id.ToString()), // هنا استخدمنا userId
         new Claim(ClaimTypes.Email, identityUser.Email ?? ""),
-        new Claim("UserType", dbUser.userType.ToString())
+        new Claim("UserType", dbUser.UserType.ToString())
     };
 
             var roles = await _userManager.GetRolesAsync(identityUser);

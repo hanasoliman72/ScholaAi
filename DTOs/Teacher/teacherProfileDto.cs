@@ -2,7 +2,7 @@
 {
     public class teacherProfileDto
     {
-        // Basic user info
+        // Basic ApplicationUser info
         public string userName { get; set; }
         public string email { get; set; }
         public string phone { get; set; }

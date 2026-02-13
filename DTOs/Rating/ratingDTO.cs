@@ -26,8 +26,8 @@ namespace ScholaAi.DTOs.Rating
     {
         public int ratingId { get; set; }
         public int sessionId { get; set; }
-        public int teacherId { get; set; }
-        public int? studentId { get; set; }
+        public string teacherId { get; set; } = default!;
+        public string? studentId { get; set; }
         public int ratingValue { get; set; }
         public string? comment { get; set; }
         public DateTime createdAt { get; set; } = DateTime.UtcNow;
@@ -35,7 +35,7 @@ namespace ScholaAi.DTOs.Rating
 
     public class teacherAverageRatingDto
     {
-        public int teacherId { get; set; }
+        public string teacherId { get; set; } = default!;
         public decimal averageRating { get; set; }
         public int totalRatings { get; set; }
     }
