@@ -9,11 +9,11 @@ namespace ScholaAi.Repositories.Student
     {
         public studentRepository(DBcontext context) : base(context) { }
 
-        async Task<Models.Student?> GetByIdAsync(string id)
+        public async Task<Models.Student?> GetByIdAsync(string id)
         {
             return await _dbSet
                 .Include(s => s.ApplicationUser)
-                    .ThenInclude(u => u.Wallet) 
+                    .ThenInclude(u => u.Wallet)
                         .ThenInclude(w => w.TransactionsFrom) // Transactions FROM (payments)
                             .ThenInclude(sess => sess.Session)
                                 .ThenInclude(t => t.Teacher)

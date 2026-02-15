@@ -31,8 +31,7 @@ namespace ScholaAi.Services.User
         }
 
         // ================= STUDENT =================
-        public async Task<StudentRegisterDto> RegisterStudent(StudentRegisterDto dto)
-        {
+        public async Task<StudentRegisterDto> RegisterStudent(StudentRegisterDto dto) {
             var user = new ApplicationUser
             {
                 UserName = dto.UserName,
@@ -45,6 +44,7 @@ namespace ScholaAi.Services.User
                 ProfilePhotoURL = dto.ProfilePhotoURL,
                 UserType = UserType.Student
             };
+            Console.WriteLine($"FirstName: '{dto.FirstName}'");
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)

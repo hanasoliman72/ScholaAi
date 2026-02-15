@@ -5,6 +5,7 @@ using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 using ScholaAi.Services;
 using System.Formats.Asn1;
+using System.Security.Claims;
 
 namespace ScholaAi.Controllers
 {
@@ -23,7 +24,10 @@ namespace ScholaAi.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> getProfile(string userId)
         {
-            // TODO: Add authorization check - ensure ApplicationUser can only access their own profile
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized(new { message = "Invalid token" });
+            
             var profile = await _studentProfileService.getStudentProfileAsync(userId);
             if(profile == null) 
                 return NotFound("Student profile not found");
@@ -35,7 +39,10 @@ namespace ScholaAi.Controllers
         [HttpPut("{userId}")]
         public async Task<IActionResult> updateProfile(string userId,[FromBody] updateStudentProfileDto dto)
         {
-            // TODO: Add authorization check - ensure ApplicationUser can only access their own profile
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var (success, message) = await _studentProfileService.updateStudentProfileAsync(userId, dto);
@@ -49,7 +56,10 @@ namespace ScholaAi.Controllers
         [HttpPost("{userId}/changePassword")]
         public async Task<IActionResult> changePassword(string userId,[FromBody] DTOs.Common.changePasswordDto dto)
         {
-            // TODO: Add authorization check - ensure ApplicationUser can only access their own profile
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _studentProfileService.changePasswordAsync(userId, dto);
@@ -62,7 +72,10 @@ namespace ScholaAi.Controllers
         [HttpPost("{userId}/uploadPhoto")]
         public async Task<IActionResult> uploadPhoto(string userId,IFormFile file) 
         {
-            // TODO: Add authorization check - ensure ApplicationUser can only access their own profile
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
             if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
 
             var photoUrl = await _studentProfileService.uploadProfilePhotoAsync(userId,file);

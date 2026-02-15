@@ -5,6 +5,6 @@ namespace ScholaAi.Repositories.Base
 {
     public interface IStudentRepository : IGenericRepository<Models.Student>
     {
-       
+        Task<Models.Student?> GetByIdAsync(string id);
     }
 }

@@ -29,7 +29,7 @@ namespace ScholaAi.Services
 
         public async Task<studentProfileDto?> getStudentProfileAsync(string userId)
         {
-            var student = await _studentRepository.getByIdAsync(userId);
+            var student = await _studentRepository.GetByIdAsync(userId);
             if (student == null || student.ApplicationUser == null)
                 return null;
 
@@ -99,7 +99,7 @@ namespace ScholaAi.Services
         public async Task<(bool success, string message)> updateStudentProfileAsync(string userId, updateStudentProfileDto dto)
 
         {
-            var student = await _studentRepository.getByIdAsync(userId);
+            var student = await _studentRepository.GetByIdAsync(userId);
             if (student == null || student.ApplicationUser == null)
                 return (false, "Student profile not found.");
 

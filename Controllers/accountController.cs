@@ -83,7 +83,7 @@ namespace ScholaAi.Controllers
 
         //}
 
-        public async Task<IActionResult> registerStudent(StudentRegisterDto userDto)
+        public async Task<IActionResult> registerStudent([FromBody] StudentRegisterDto userDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -93,23 +93,23 @@ namespace ScholaAi.Controllers
             if (existingUser != null)
                 return BadRequest(new { message = "Email is already registered." });
 
-            ApplicationUser identityUser = new ApplicationUser
-            {
-                UserName = userDto.UserName,
-                Email = userDto.Email,
-                PhoneNumber = userDto.Phone
-            };
+            //ApplicationUser identityUser = new ApplicationUser
+            //{
+            //    UserName = userDto.UserName,
+            //    Email = userDto.Email,
+            //    PhoneNumber = userDto.Phone
+            //};
 
-            var result = await _userManager.CreateAsync(identityUser, userDto.Password);
+            //var result = await _userManager.CreateAsync(identityUser, userDto.Password);
  
-            if (!result.Succeeded)
-            // return BadRequest(result.Errors);
-            {
-                var errors = result.Errors.Select(e => e.Description);
-                return BadRequest(new { message = "Registration failed", errors });
-            }
-            await _userManager.AddToRoleAsync(identityUser, "Student");
-            //userDto.id = identityUser.Id;
+            //if (!result.Succeeded)
+            //// return BadRequest(result.Errors);
+            //{
+            //    var errors = result.Errors.Select(e => e.Description);
+            //    return BadRequest(new { message = "Registration failed", errors });
+            //}
+            //await _userManager.AddToRoleAsync(identityUser, "Student");
+            ////userDto.id = identityUser.Id;
 
             await _userService.RegisterStudent(userDto);
 
@@ -117,37 +117,41 @@ namespace ScholaAi.Controllers
         }
 
         [HttpPost("register/Teacher")]
-public async Task<IActionResult> registerTeacher(TeacherRegisterDto userDto)
-{
-    if (!ModelState.IsValid)
-        return BadRequest(ModelState);
-
-    // Check if email already exists
-    var existingUser = await _userManager.FindByEmailAsync(userDto.Email);
-    if (existingUser != null)
-        return BadRequest(new { message = "Email is already registered." });
-
-        ApplicationUser user = new ApplicationUser();
-        user.UserName = userDto.UserName;
-        user.Email = userDto.Email;
-        user.PhoneNumber = userDto.Phone;
-
-        var result = await _userManager.CreateAsync(user, userDto.Password);
-      
-        if (result.Succeeded)
-        { 
-            await _userManager.AddToRoleAsync(user, "Teacher");
-            //userDto.id = user.Id;
-            await _userService.RegisterTeacher(userDto);
-           
-            return Ok("You Registered Successfully");
-        }
-        else
+        public async Task<IActionResult> registerTeacher([FromBody] TeacherRegisterDto userDto)
         {
-            var errors = result.Errors.Select(e => e.Description);
-            return BadRequest(new { message = "Registration failed", errors });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Check if email already exists
+            var existingUser = await _userManager.FindByEmailAsync(userDto.Email);
+            if (existingUser != null)
+                return BadRequest(new { message = "Email is already registered." });
+
+            await _userService.RegisterTeacher(userDto);
+
+            return Ok("You Registered Successfully");
+
+            //ApplicationUser user = new ApplicationUser();
+            //user.UserName = userDto.UserName;
+            //user.Email = userDto.Email;
+            //user.PhoneNumber = userDto.Phone;
+
+            //var result = await _userManager.CreateAsync(user, userDto.Password);
+
+            //if (result.Succeeded)
+            //{
+            //    await _userManager.AddToRoleAsync(user, "Teacher");
+            //    //userDto.id = user.Id;
+            //    await _userService.RegisterTeacher(userDto);
+
+            //    return Ok("You Registered Successfully");
+            //}
+            //else
+            //{
+            //    var errors = result.Errors.Select(e => e.Description);
+            //    return BadRequest(new { message = "Registration failed", errors });
+            //}
         }
-}
         //[HttpPost("login")]
         //public async Task<IActionResult> login(loginDto userDto)
         //{
