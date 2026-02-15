@@ -44,11 +44,13 @@ namespace ScholaAi.Services.User
                 ProfilePhotoURL = dto.ProfilePhotoURL,
                 UserType = UserType.Student
             };
-            Console.WriteLine($"FirstName: '{dto.FirstName}'");
+            //Console.WriteLine($"FirstName: '{dto.FirstName}'");
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
                 throw new Exception(result.Errors.First().Description);
+
+            await _userManager.AddToRoleAsync(user, "Student");
 
             // إنشاء سجل الطالب
             await _studentRepository.AddAsync(new Student
@@ -92,6 +94,8 @@ namespace ScholaAi.Services.User
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
                 throw new Exception(result.Errors.First().Description);
+
+            await _userManager.AddToRoleAsync(user, "Teacher");
 
             // إنشاء سجل المعلم
             await _teacherRepository.AddAsync(new Models.Teacher

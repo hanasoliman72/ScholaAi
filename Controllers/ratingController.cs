@@ -8,6 +8,7 @@ namespace ScholaAi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Student")]
     public class ratingController : ControllerBase
     {
         private readonly IRatingService _ratingService;

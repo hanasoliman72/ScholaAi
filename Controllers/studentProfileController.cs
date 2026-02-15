@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
+using ScholaAi.Models;
 using ScholaAi.Services;
 using System.Formats.Asn1;
 using System.Security.Claims;
@@ -11,6 +13,7 @@ namespace ScholaAi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Student")]
     public class studentProfileController : ControllerBase
     {
         private readonly IStudentProfileService _studentProfileService;
@@ -24,10 +27,14 @@ namespace ScholaAi.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> getProfile(string userId)
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
-                return Unauthorized(new { message = "Invalid token" });
             
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
             var profile = await _studentProfileService.getStudentProfileAsync(userId);
             if(profile == null) 
                 return NotFound("Student profile not found");
@@ -39,9 +46,12 @@ namespace ScholaAi.Controllers
         [HttpPut("{userId}")]
         public async Task<IActionResult> updateProfile(string userId,[FromBody] updateStudentProfileDto dto)
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
 
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -56,9 +66,12 @@ namespace ScholaAi.Controllers
         [HttpPost("{userId}/changePassword")]
         public async Task<IActionResult> changePassword(string userId,[FromBody] DTOs.Common.changePasswordDto dto)
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
 
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -72,9 +85,12 @@ namespace ScholaAi.Controllers
         [HttpPost("{userId}/uploadPhoto")]
         public async Task<IActionResult> uploadPhoto(string userId,IFormFile file) 
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim == null)
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
 
             if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
 

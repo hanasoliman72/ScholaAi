@@ -101,7 +101,7 @@ namespace ScholaAi.Controllers
             //};
 
             //var result = await _userManager.CreateAsync(identityUser, userDto.Password);
- 
+
             //if (!result.Succeeded)
             //// return BadRequest(result.Errors);
             //{
@@ -271,49 +271,48 @@ namespace ScholaAi.Controllers
         //    }
 
         [HttpPost("login")]
-        public async Task<IActionResult> login(loginDto userDto)
+        public async Task<IActionResult> Login([FromBody] loginDto userDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var identityUser = await _userManager.FindByEmailAsync(userDto.email);
             if (identityUser == null)
-                return Unauthorized();
+                return Unauthorized("Invalid email or password");
 
             var isPasswordValid = await _userManager.CheckPasswordAsync(identityUser, userDto.password);
             if (!isPasswordValid)
-                return Unauthorized();
+                return Unauthorized("Invalid email or password");
 
-            var dbUser = await _userService.GetUserByApplicationUserId(identityUser.Id);
-            if (dbUser == null)
-                return Unauthorized();
-
-            // ✅ Claims
-            var claims = new List<Claim>()
+            // 🔑 Claims
+            var claims = new List<Claim>
     {
-        new Claim(ClaimTypes.NameIdentifier, dbUser.Id.ToString()), // هنا استخدمنا userId
-        new Claim(ClaimTypes.Email, identityUser.Email ?? ""),
-        new Claim("UserType", dbUser.UserType.ToString())
+        new Claim(ClaimTypes.NameIdentifier, identityUser.Id), // ✅ CORRECT
+        new Claim(ClaimTypes.Email, identityUser.Email ?? string.Empty),
+        new Claim("UserType", identityUser.UserType.ToString())
     };
 
+            // ✅ Roles
             var roles = await _userManager.GetRolesAsync(identityUser);
             foreach (var role in roles)
+            {
                 claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
-            // ✅ JWT
+            // 🔐 JWT
             var secretKey = _configuration["JWT:Secretkey"];
-            var validIssuer = _configuration["JWT:ValidIssuer"];
-            var validAudience = _configuration["JWT:ValidAudience"];
+            var issuer = _configuration["JWT:ValidIssuer"];
+            var audience = _configuration["JWT:ValidAudience"];
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: validIssuer,
-                audience: validAudience,
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
-                expires: DateTime.Now.AddDays(365),
-                signingCredentials: signingCredentials
+                expires: DateTime.UtcNow.AddDays(365),
+                signingCredentials: credentials
             );
 
             return Ok(new
@@ -321,6 +320,7 @@ namespace ScholaAi.Controllers
                 token = new JwtSecurityTokenHandler().WriteToken(token)
             });
         }
+
 
 
         // ========================
