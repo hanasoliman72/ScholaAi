@@ -12,7 +12,7 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20260216043302_init")]
+    [Migration("20260216190640_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -457,9 +457,6 @@ namespace ScholaAi.Migrations
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("TeacherApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("TeacherId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -467,8 +464,6 @@ namespace ScholaAi.Migrations
                     b.HasKey("BroadcastId");
 
                     b.HasIndex("RequestId");
-
-                    b.HasIndex("TeacherApplicationUserId");
 
                     b.HasIndex("TeacherId");
 
@@ -539,10 +534,6 @@ namespace ScholaAi.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("StudentApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -550,21 +541,14 @@ namespace ScholaAi.Migrations
                     b.Property<int>("SubjectId")
                         .HasColumnType("int");
 
-                    b.Property<string>("TeacherApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("TeacherId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("RequestId");
 
-                    b.HasIndex("StudentApplicationUserId");
-
                     b.HasIndex("StudentId");
 
                     b.HasIndex("SubjectId");
-
-                    b.HasIndex("TeacherApplicationUserId");
 
                     b.HasIndex("TeacherId");
 
@@ -864,25 +848,21 @@ namespace ScholaAi.Migrations
 
             modelBuilder.Entity("ScholaAi.Models.RequestBroadcast", b =>
                 {
-                    b.HasOne("ScholaAi.Models.SessionRequest", "TeacherSession")
+                    b.HasOne("ScholaAi.Models.SessionRequest", "SessionRequest")
                         .WithMany("RequestBroadcasts")
                         .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ScholaAi.Models.Teacher", null)
-                        .WithMany("RequestBroadcasts")
-                        .HasForeignKey("TeacherApplicationUserId");
-
-                    b.HasOne("ScholaAi.Models.ApplicationUser", "Teacher")
+                    b.HasOne("ScholaAi.Models.Teacher", "Teacher")
                         .WithMany("RequestBroadcasts")
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Teacher");
+                    b.Navigation("SessionRequest");
 
-                    b.Navigation("TeacherSession");
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.Session", b =>
@@ -914,14 +894,8 @@ namespace ScholaAi.Migrations
 
             modelBuilder.Entity("ScholaAi.Models.SessionRequest", b =>
                 {
-                    b.HasOne("ScholaAi.Models.Student", null)
-                        .WithMany("Requests")
-                        .HasForeignKey("StudentApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ScholaAi.Models.ApplicationUser", "Student")
-                        .WithMany("Requests")
+                    b.HasOne("ScholaAi.Models.Student", "Student")
+                        .WithMany("SessionRequests")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -932,11 +906,7 @@ namespace ScholaAi.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ScholaAi.Models.Teacher", null)
-                        .WithMany("SessionRequests")
-                        .HasForeignKey("TeacherApplicationUserId");
-
-                    b.HasOne("ScholaAi.Models.ApplicationUser", "Teacher")
+                    b.HasOne("ScholaAi.Models.Teacher", "Teacher")
                         .WithMany("SessionRequests")
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -1026,15 +996,9 @@ namespace ScholaAi.Migrations
 
                     b.Navigation("ReceivedNotifications");
 
-                    b.Navigation("RequestBroadcasts");
-
-                    b.Navigation("Requests");
-
                     b.Navigation("SentMessages");
 
                     b.Navigation("SentNotifications");
-
-                    b.Navigation("SessionRequests");
 
                     b.Navigation("Student");
 
@@ -1065,7 +1029,7 @@ namespace ScholaAi.Migrations
 
             modelBuilder.Entity("ScholaAi.Models.Student", b =>
                 {
-                    b.Navigation("Requests");
+                    b.Navigation("SessionRequests");
 
                     b.Navigation("Sessions");
                 });

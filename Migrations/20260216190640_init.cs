@@ -302,40 +302,27 @@ namespace ScholaAi.Migrations
                     Status = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FinalScheduledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    StudentApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TeacherApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SessionRequests", x => x.RequestId);
                     table.ForeignKey(
-                        name: "FK_SessionRequests_AspNetUsers_StudentId",
+                        name: "FK_SessionRequests_Students_StudentId",
                         column: x => x.StudentId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_SessionRequests_AspNetUsers_TeacherId",
-                        column: x => x.TeacherId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_SessionRequests_Students_StudentApplicationUserId",
-                        column: x => x.StudentApplicationUserId,
                         principalTable: "Students",
-                        principalColumn: "ApplicationUserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ApplicationUserId");
                     table.ForeignKey(
                         name: "FK_SessionRequests_Subjects_SubjectId",
                         column: x => x.SubjectId,
                         principalTable: "Subjects",
                         principalColumn: "subjectId");
                     table.ForeignKey(
-                        name: "FK_SessionRequests_Teachers_TeacherApplicationUserId",
-                        column: x => x.TeacherApplicationUserId,
+                        name: "FK_SessionRequests_Teachers_TeacherId",
+                        column: x => x.TeacherId,
                         principalTable: "Teachers",
-                        principalColumn: "ApplicationUserId");
+                        principalColumn: "ApplicationUserId",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -381,25 +368,20 @@ namespace ScholaAi.Migrations
                     TeacherId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SentAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDelivered = table.Column<bool>(type: "bit", nullable: false),
-                    IsAccepted = table.Column<bool>(type: "bit", nullable: false),
-                    TeacherApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    IsAccepted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RequestBroadcasts", x => x.BroadcastId);
                     table.ForeignKey(
-                        name: "FK_RequestBroadcasts_AspNetUsers_TeacherId",
-                        column: x => x.TeacherId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_RequestBroadcasts_SessionRequests_RequestId",
                         column: x => x.RequestId,
                         principalTable: "SessionRequests",
-                        principalColumn: "RequestId");
+                        principalColumn: "RequestId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RequestBroadcasts_Teachers_TeacherApplicationUserId",
-                        column: x => x.TeacherApplicationUserId,
+                        name: "FK_RequestBroadcasts_Teachers_TeacherId",
+                        column: x => x.TeacherId,
                         principalTable: "Teachers",
                         principalColumn: "ApplicationUserId");
                 });
@@ -657,19 +639,9 @@ namespace ScholaAi.Migrations
                 column: "RequestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RequestBroadcasts_TeacherApplicationUserId",
-                table: "RequestBroadcasts",
-                column: "TeacherApplicationUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_RequestBroadcasts_TeacherId",
                 table: "RequestBroadcasts",
                 column: "TeacherId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SessionRequests_StudentApplicationUserId",
-                table: "SessionRequests",
-                column: "StudentApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SessionRequests_StudentId",
@@ -680,11 +652,6 @@ namespace ScholaAi.Migrations
                 name: "IX_SessionRequests_SubjectId",
                 table: "SessionRequests",
                 column: "SubjectId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SessionRequests_TeacherApplicationUserId",
-                table: "SessionRequests",
-                column: "TeacherApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SessionRequests_TeacherId",
