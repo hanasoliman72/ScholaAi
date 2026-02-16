@@ -141,7 +141,7 @@ namespace ScholaAi.Models
             // ================= SessionRequest =================
             modelBuilder.Entity<SessionRequest>()
                 .HasOne(r => r.Student)
-                .WithMany(s => s.Requests)
+                .WithMany(s => s.SessionRequests)
                 .HasForeignKey(r => r.StudentId)
                 .OnDelete(DeleteBehavior.NoAction);
 
@@ -171,17 +171,17 @@ namespace ScholaAi.Models
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<RequestBroadcast>()
-                .HasOne(rb => rb.TeacherSession)
+                .HasOne(rb => rb.SessionRequest)
                 .WithMany(r => r.RequestBroadcasts)
                 .HasForeignKey(rb => rb.RequestId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ================= Transaction =================
             modelBuilder.Entity<Transaction>()
-              .HasOne(t => t.FromWallet)
-              .WithMany(w => w.TransactionsFrom)
-              .HasForeignKey(t => t.FromWalletId)
-              .OnDelete(DeleteBehavior.NoAction);
+                .HasOne(t => t.FromWallet)
+                .WithMany(w => w.TransactionsFrom)
+                .HasForeignKey(t => t.FromWalletId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.ToWallet)
@@ -189,13 +189,12 @@ namespace ScholaAi.Models
                 .HasForeignKey(t => t.ToWalletId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-
             // ================= Availability =================
             modelBuilder.Entity<Availability>()
                 .HasOne(a => a.ApplicationUser)
                 .WithMany()
                 .HasForeignKey(a => a.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Cascade);
-        }
+        }  // ✅ Closing brace for OnModelCreating method
     }
 }

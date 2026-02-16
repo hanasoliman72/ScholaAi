@@ -9,9 +9,9 @@ namespace ScholaAi.Models
 
         public int Grade { get; set; }
 
-        public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser? ApplicationUser { get; set; }
 
         public ICollection<Session> Sessions { get; set; } = new List<Session>();
-        public ICollection<SessionRequest> Requests { get; set; } = new List<SessionRequest>();
+        public ICollection<SessionRequest> SessionRequests { get; set; } = new List<SessionRequest>();
     }
 }

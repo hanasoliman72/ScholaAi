@@ -42,9 +42,10 @@ namespace ScholaAi.Services.sessions
                 .Select(t => t.ApplicationUserId)
                 .ToListAsync();
 
+            // Add broadcasts for all matching teachers
             foreach (var teacherId in teachers)
             {
-                _context.RequestBroadcasts.Add(new RequestBroadcast
+                await _broadcastRepo.Add(new RequestBroadcast
                 {
                     TeacherId = teacherId,
                     RequestId = request.RequestId
@@ -61,28 +62,59 @@ namespace ScholaAi.Services.sessions
 
         public async Task AcceptRequest(string teacherId, int sessionId)
         {
-            var request = await _requestRepo.GetById(sessionId);
+            // ✅ Use transaction to prevent race conditions
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (request == null)
-                throw new Exception("Request not found");
+            try
+            {
+                var request = await _requestRepo.GetById(sessionId);
 
-            if (request.Status != RequestStatus.Pending)
-                throw new Exception("Already taken");
+                if (request == null)
+                    throw new Exception("Request not found");
 
-            request.TeacherId = teacherId;
-            request.Status = RequestStatus.Accepted;
-            request.FinalScheduledAt = DateTime.UtcNow;
+                // ✅ Check if teacher is authorized to accept this request
+                var broadcast = await _context.RequestBroadcasts
+                    .FirstOrDefaultAsync(b => b.TeacherId == teacherId && b.RequestId == sessionId);
 
-            await _broadcastRepo.Accept(teacherId, sessionId);
-            await _broadcastRepo.RemoveOthers(sessionId, teacherId);
+                if (broadcast == null)
+                    throw new Exception("You are not authorized to accept this request");
 
-            await _requestRepo.Save();
+                // ✅ Double-check status (race condition protection)
+                if (request.Status != RequestStatus.Pending)
+                    throw new Exception("Request already accepted by another teacher");
+
+                // Update request
+                request.TeacherId = teacherId;
+                request.Status = RequestStatus.Accepted;
+                request.FinalScheduledAt = DateTime.UtcNow;
+
+                // Update broadcast
+                await _broadcastRepo.Accept(teacherId, sessionId);
+
+                // Remove other teachers' broadcasts
+                await _broadcastRepo.RemoveOthers(sessionId, teacherId);
+
+                await _requestRepo.Save();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task RejectRequest(string teacherId, int sessionId)
         {
+            // ✅ Check if teacher has this broadcast
+            var broadcast = await _context.RequestBroadcasts
+                .FirstOrDefaultAsync(b => b.TeacherId == teacherId && b.RequestId == sessionId);
+
+            if (broadcast == null)
+                throw new Exception("Request not found or already removed");
+
             await _broadcastRepo.Remove(teacherId, sessionId);
-            await _requestRepo.Save();
+            await _context.SaveChangesAsync(); // ✅ FIX: Was missing!
         }
 
         public async Task<List<studentSessionDto>> GetStudentRequests(string studentId)
@@ -95,9 +127,9 @@ namespace ScholaAi.Services.sessions
                 subject = r.Subject.name,
                 preferredDate = r.PreferredDate,
                 status = r.Status.ToString(),
-                teacherName = r.Teacher == null
+                teacherName = r.Teacher?.ApplicationUser == null
                     ? null
-                    : $"{r.Teacher.FirstName} {r.Teacher.LastName}"
+                    : $"{r.Teacher.ApplicationUser.FirstName} {r.Teacher.ApplicationUser.LastName}"
             }).ToList();
         }
     }

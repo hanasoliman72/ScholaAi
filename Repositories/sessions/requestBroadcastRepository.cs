@@ -49,19 +49,20 @@ public class requestBroadcastRepository : genericRepository<RequestBroadcast>, I
     {
         return await _context.RequestBroadcasts
             .Where(b => b.TeacherId == teacherId && b.IsAccepted == false)
-            .Include(b => b.TeacherSession)
-                .ThenInclude(r => r.Student)  // Stop here - Student is already ApplicationUser
-            .Include(b => b.TeacherSession)
+            .Include(b => b.SessionRequest)
+                .ThenInclude(r => r.Student)
+                    .ThenInclude(s => s.ApplicationUser)  // Get student's user info
+            .Include(b => b.SessionRequest)
                 .ThenInclude(r => r.Subject)
             .Select(b => new teacherRequestDto
             {
                 sessionId = b.RequestId,
                 studentName =
-                    b.TeacherSession.Student.FirstName + " " +  // Direct access
-                    b.TeacherSession.Student.LastName,
-                subject = b.TeacherSession.Subject.name,
-                preferredDate = b.TeacherSession.PreferredDate,
-                description = b.TeacherSession.Description
+                    b.SessionRequest.Student.ApplicationUser.FirstName + " " +
+                    b.SessionRequest.Student.ApplicationUser.LastName,
+                subject = b.SessionRequest.Subject.name,
+                preferredDate = b.SessionRequest.PreferredDate,
+                description = b.SessionRequest.Description
             })
             .ToListAsync();
     }

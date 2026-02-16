@@ -28,7 +28,7 @@ namespace ScholaAi.Models
         public int SubjectId { get; set; }
         public Subject Subject { get; set; }
 
-        public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser? ApplicationUser { get; set; }
 
         public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
         public ICollection<SessionRequest> SessionRequests { get; set; } = new List<SessionRequest>();

@@ -10,14 +10,15 @@ namespace ScholaAi.Models
         Teacher,
         Admin
     }
+
     public enum Gender
     {
         Male,
         Female
     }
+
     public class ApplicationUser : IdentityUser
     {
-
         // ===== Core Profile =====
         [Required, StringLength(50)]
         public string FirstName { get; set; }
@@ -26,7 +27,6 @@ namespace ScholaAi.Models
         public string LastName { get; set; }
 
         public Gender Gender { get; set; }
-
         public UserType UserType { get; set; }
 
         [MaxLength(500)]
@@ -41,17 +41,12 @@ namespace ScholaAi.Models
 
         public ICollection<Notification> SentNotifications { get; set; } = new List<Notification>();
         public ICollection<Notification> ReceivedNotifications { get; set; } = new List<Notification>();
-
         public ICollection<ChatMessage> SentMessages { get; set; } = new List<ChatMessage>();
         public ICollection<ChatMessage> ReceivedMessages { get; set; } = new List<ChatMessage>();
-
         public ICollection<AdminLogs> AdminActions { get; set; } = new List<AdminLogs>();
         public ICollection<AdminLogs> AdminTargets { get; set; } = new List<AdminLogs>();
-        public ICollection<SessionRequest> Requests { get; set; } = new List<SessionRequest>();
 
-
-        public ICollection<SessionRequest> SessionRequests { get; set; } = new List<SessionRequest>();
-
-        public ICollection<RequestBroadcast> RequestBroadcasts { get; set; } = new List<RequestBroadcast>();
+      
+        
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
 {
@@ -16,10 +15,10 @@ namespace ScholaAi.Models
         [Key]
         public int RequestId { get; set; }
 
-        // FK → Teacher User (nullable قبل ما الطلب يتقبل)
+        // FK → Teacher (nullable until accepted)
         public string? TeacherId { get; set; }
 
-        // FK → Student User
+        // FK → Student
         [Required]
         public string StudentId { get; set; }
 
@@ -27,29 +26,18 @@ namespace ScholaAi.Models
         public int SubjectId { get; set; }
 
         public DateTime PreferredDate { get; set; } = DateTime.UtcNow;
-
         public RequestStatus Status { get; set; } = RequestStatus.Pending;
-
         public string? Description { get; set; }
-
         public DateTime? FinalScheduledAt { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public AdminLogs? AdminLogs { get; set; }
 
-        // Navigation
-        [ForeignKey(nameof(TeacherId))]
-        public ApplicationUser? Teacher { get; set; }
-
-        [ForeignKey(nameof(StudentId))]
-        public ApplicationUser Student { get; set; }
-
-        [ForeignKey(nameof(SubjectId))]
+        // Navigation properties
+        public Teacher? Teacher { get; set; }
+        public Student Student { get; set; }
         public Subject Subject { get; set; }
-
         public Session? Session { get; set; }
-
         public ICollection<RequestBroadcast> RequestBroadcasts { get; set; } = new List<RequestBroadcast>();
     }
 }
