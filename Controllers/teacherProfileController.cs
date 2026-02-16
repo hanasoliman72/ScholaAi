@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ScholaAi.Services.Teacher;
+using System.Security.Claims;
 
 namespace ScholaAi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class teacherProfileController : ControllerBase
     {
         private readonly ITeacherProfileService _teacherProfileService;
@@ -18,8 +21,16 @@ namespace ScholaAi.Controllers
         // ✅ Get Teacher Profile by ID
         // ===============================
         [HttpGet("{teacherId}")]
-        public async Task<IActionResult> GetProfile(int teacherId)
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> GetProfile(string teacherId)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != teacherId)
+                return Unauthorized("You can only access your own profile");
+
             var profile = await _teacherProfileService.GetTeacherProfileAsync(teacherId);
 
             if (profile == null)
@@ -33,13 +44,18 @@ namespace ScholaAi.Controllers
         // ===============================
         // ✅ Student Search Teachers
         // ===============================
-        // api/teacherProfile/search?name=&subject=&keyword=
+        // api/teacherProfile/search?name=&Subject=&keyword=
         [HttpGet("search")]
+        [Authorize(Roles = "Student")]
         public async Task<IActionResult> SearchTeachers(
             [FromQuery] string? name,
             [FromQuery] string? subject,
             [FromQuery] string? keyword)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
             var result = await _teacherProfileService
                 .SearchTeachersAsync(name, subject, keyword);
 

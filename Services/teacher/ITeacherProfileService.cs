@@ -5,7 +5,7 @@ namespace ScholaAi.Services.Teacher
 {
     public interface ITeacherProfileService
     {
-        Task<teacherProfileDto?> GetTeacherProfileAsync(int teacherId);
+        Task<teacherProfileDto?> GetTeacherProfileAsync(string teacherId);
         Task<List<teacherSearchResultDto>> SearchTeachersAsync(
            string? name,
            string? subject,

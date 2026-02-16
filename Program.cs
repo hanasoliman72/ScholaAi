@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ScholaAi.Data.Seeders;
+using ScholaAi.Services.sessions;
 
 namespace ScholaAi
 {
@@ -33,7 +34,7 @@ namespace ScholaAi
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Myconection")));
 
             // Identity
-            builder.Services.AddIdentityCore<applicationUser>()
+            builder.Services.AddIdentityCore<ApplicationUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<DBcontext>()
                 .AddDefaultTokenProviders();
@@ -47,7 +48,7 @@ namespace ScholaAi
 
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
-            builder.Services.AddScoped<IUserService, userService>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IFileUploadService, fileUploadService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ISessionRequestService, sessionRequestService>();
@@ -56,7 +57,7 @@ namespace ScholaAi
 
             // Repositories
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(genericRepository<>));
-            builder.Services.AddScoped<IUserRepository, userRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IStudentRepository, studentRepository>();
             builder.Services.AddScoped<ITeacherRepository, teacherRepository>();
             builder.Services.AddScoped<IAvailabilityRepository, availabilityRepository>();

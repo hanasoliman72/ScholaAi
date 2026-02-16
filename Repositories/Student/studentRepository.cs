@@ -5,22 +5,22 @@ using System;
 
 namespace ScholaAi.Repositories.Student
 {
-    public class studentRepository : genericRepository<student>, IStudentRepository
+    public class studentRepository : genericRepository<Models.Student>, IStudentRepository
     {
         public studentRepository(DBcontext context) : base(context) { }
 
-        public override async Task<student?> getByIdAsync(int id)
+        public async Task<Models.Student?> GetByIdAsync(string id)
         {
             return await _dbSet
-                .Include(s => s.user)
-                    .ThenInclude(u => u.wallet) 
-                        .ThenInclude(w => w.transactionsFrom) // Transactions FROM (payments)
-                            .ThenInclude(sess => sess.session)
-                                .ThenInclude(t => t.teacher)
-                                    .ThenInclude(tu => tu.user)
-                .Include(s => s.sessions)
-                    .ThenInclude(sess => sess.transaction) // Session transactions
-                .FirstOrDefaultAsync(s => s.userId == id);
+                .Include(s => s.ApplicationUser)
+                    .ThenInclude(u => u.Wallet)
+                        .ThenInclude(w => w.TransactionsFrom) // Transactions FROM (payments)
+                            .ThenInclude(sess => sess.Session)
+                                .ThenInclude(t => t.Teacher)
+                                    .ThenInclude(tu => tu.ApplicationUser)
+                .Include(s => s.Sessions)
+                    .ThenInclude(sess => sess.Transaction) // Session transactions
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == id);
         }
     }
 }

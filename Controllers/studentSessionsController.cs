@@ -19,7 +19,7 @@ namespace ScholaAi.Controllers
         }
 
         // ============================
-        // Create session request
+        // Create Session request
         // ============================
         [HttpPost("CreateRequest")]
         public async Task<IActionResult> Create([FromBody] createSessionRequestDto dto)
@@ -29,7 +29,7 @@ namespace ScholaAi.Controllers
             if (claim == null)
                 return Unauthorized(new { message = "Invalid token" });
 
-            int studentId = int.Parse(claim.Value);
+            string studentId = claim.Value;
 
             // 2️⃣ Check body
             if (dto == null)
@@ -53,7 +53,7 @@ namespace ScholaAi.Controllers
             if (claim == null)
                 return Unauthorized(new { message = "Invalid token" });
 
-            int studentId = int.Parse(claim.Value);
+            string studentId = claim.Value;
 
             var requests = await _sessionService.GetStudentRequests(studentId);
 

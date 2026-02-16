@@ -1,15 +1,19 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
+using ScholaAi.Models;
 using ScholaAi.Services;
 using System.Formats.Asn1;
+using System.Security.Claims;
 
 namespace ScholaAi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Student")]
     public class studentProfileController : ControllerBase
     {
         private readonly IStudentProfileService _studentProfileService;
@@ -21,9 +25,16 @@ namespace ScholaAi.Controllers
 
         // GET: api/studentProfile/{userId}
         [HttpGet("{userId}")]
-        public async Task<IActionResult> getProfile(int userId)
+        public async Task<IActionResult> getProfile(string userId)
         {
-            // TODO: Add authorization check - ensure user can only access their own profile
+            
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
             var profile = await _studentProfileService.getStudentProfileAsync(userId);
             if(profile == null) 
                 return NotFound("Student profile not found");
@@ -33,9 +44,15 @@ namespace ScholaAi.Controllers
 
         // PUT: api/studentProfile/{userId}
         [HttpPut("{userId}")]
-        public async Task<IActionResult> updateProfile(int userId,[FromBody] updateStudentProfileDto dto)
+        public async Task<IActionResult> updateProfile(string userId,[FromBody] updateStudentProfileDto dto)
         {
-            // TODO: Add authorization check - ensure user can only access their own profile
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var (success, message) = await _studentProfileService.updateStudentProfileAsync(userId, dto);
@@ -47,22 +64,34 @@ namespace ScholaAi.Controllers
 
         // POST: api/studentProfile/{userId}/changePassword
         [HttpPost("{userId}/changePassword")]
-        public async Task<IActionResult> changePassword(int userId,[FromBody] DTOs.Common.changePasswordDto dto)
+        public async Task<IActionResult> changePassword(string userId,[FromBody] DTOs.Common.changePasswordDto dto)
         {
-            // TODO: Add authorization check - ensure user can only access their own profile
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _studentProfileService.changePasswordAsync(userId, dto);
-            if(!result) return BadRequest("Current password is incorrect or student not found.");
+            if(!result) return BadRequest("Current password is incorrect or Student not found.");
 
             return Ok("Password changed successfully");
         }
 
         // POST: api/studentProfile/{userId}/uploadPhoto
         [HttpPost("{userId}/uploadPhoto")]
-        public async Task<IActionResult> uploadPhoto(int userId,IFormFile file) 
+        public async Task<IActionResult> uploadPhoto(string userId,IFormFile file) 
         {
-            // TODO: Add authorization check - ensure user can only access their own profile
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
             if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
 
             var photoUrl = await _studentProfileService.uploadProfilePhotoAsync(userId,file);

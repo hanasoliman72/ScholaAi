@@ -2,101 +2,104 @@
 using ScholaAi.Services.Base;
 using ScholaAi.DTOs.Rating;
 using ScholaAi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ScholaAi.Services.Rating
 {
     public class ratingService : IRatingService
     {
         private readonly IRatingRepository _ratingRepository;
-        private readonly IGenericRepository<session> _sessionRepository;
+        private readonly DBcontext _context;
         private readonly ILogger<ratingService> _logger;
 
         public ratingService(
             IRatingRepository ratingRepository,
-            IGenericRepository<session> sessionRepository,
+            DBcontext context,
             ILogger<ratingService> logger)
         {
             _ratingRepository = ratingRepository;
-            _sessionRepository = sessionRepository;
+            _context = context;
             _logger = logger;
         }
 
-        // HELPER METHOD TO MAP FROM rating → ratingDto
-        private static ratingDto mapToDto(rating rating)
+        // HELPER METHOD TO MAP FROM Rating → ratingDto
+        private static ratingDto mapToDto(Models.Rating rating)
         {
             return new ratingDto
             {
-                ratingId = rating.ratingId,
-                sessionId = rating.sessionId,
-                teacherId = rating.teacherId,
-                studentId = rating.studentId,
-                ratingValue = rating.ratingValue,
-                comment = rating.comment,
-                createdAt = rating.createdAt
+                ratingId = rating.RatingId,
+                sessionId = rating.SessionId,
+                teacherId = rating.TeacherId,
+                studentId = rating.StudentId,
+                ratingValue = rating.RatingValue,
+                comment = rating.Comment,
+                createdAt = rating.CreatedAt
             };
         }
 
-        public async Task<ratingDto> createRatingAsync(int sessionId, int? studentId, ratingCreateDto dto)
+        public async Task<ratingDto> createRatingAsync(int sessionId, string? studentId, ratingCreateDto dto)
         {
             try
             {
-                // Validate session exists
-                var session = await _sessionRepository.getByIdAsync(sessionId);
+                // Validate Session exists
+                var session = await _context.Sessions
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.SessionId == sessionId);
                 if (session == null)
                     throw new InvalidOperationException("Session not found");
 
                 // If authenticated (not anonymous), validate ownership
-                if (studentId.HasValue && session.studentId != studentId)
-                    throw new UnauthorizedAccessException("You cannot rate a session that doesn't belong to you");
+                if (!string.IsNullOrEmpty(studentId) && session.StudentId != studentId)
+                    throw new UnauthorizedAccessException("You cannot rate a Session that doesn't belong to you");
 
-                //// Validate session has ended
-                //if (session.endTime > DateTime.UtcNow)
-                //    throw new InvalidOperationException("You can only rate a session after it has ended");
+                //// Validate Session has ended
+                //if (Session.endTime > DateTime.UtcNow)
+                //    throw new InvalidOperationException("You can only rate a Session after it has ended");
 
-                // Check if rating already exists
+                // Check if Rating already exists
                 var existingRating = await _ratingRepository.ratingExistsBySessionAsync(sessionId);
                 if (existingRating)
-                    throw new InvalidOperationException("You have already rated this session");
+                    throw new InvalidOperationException("You have already rated this Session");
 
-                // Create the rating
-                var rating = new rating
+                // Create the Rating
+                var rating = new Models.Rating
                 {
-                    sessionId = sessionId,
-                    studentId = studentId,  // Can be null for anonymous
-                    teacherId = session.teacherId,
-                    ratingValue = dto.ratingValue,
-                    comment = dto.comment,
-                    createdAt = DateTime.UtcNow
+                    SessionId = sessionId,
+                    StudentId = studentId,  // Can be null for anonymous
+                    TeacherId = session.TeacherId,
+                    RatingValue = dto.ratingValue,
+                    Comment = dto.comment,
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                await _ratingRepository.addAsync(rating);
-                _logger.LogInformation("Rating created for session {SessionId}", sessionId);
+                await _ratingRepository.AddAsync(rating);
+                _logger.LogInformation("Rating created for Session {SessionId}", sessionId);
 
                 return mapToDto(rating);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating rating for session {SessionId}", sessionId);
+                _logger.LogError(ex, "Error creating Rating for Session {SessionId}", sessionId);
                 throw;
             }
         }
 
-        public async Task<ratingDto?> updateRatingAsync(int ratingId, int? studentId, ratingUpdateDto dto)
+        public async Task<ratingDto?> updateRatingAsync(int ratingId, string? studentId, ratingUpdateDto dto)
         {
             try
             {
-                // Validate rating exists
+                // Validate Rating exists
                 var existingRating = await _ratingRepository.getByIdAsync(ratingId);
                 if (existingRating == null)
                     throw new InvalidOperationException("Rating not found");
 
                 // Validate ownership (if not anonymous)
-                if (studentId.HasValue && existingRating.studentId != studentId)
+                if (!string.IsNullOrEmpty(studentId) && existingRating.StudentId != studentId)
                     throw new UnauthorizedAccessException("You can only update your own ratings");
 
-                // Update the rating
-                existingRating.ratingValue = dto.ratingValue;
-                existingRating.comment = dto.comment;
+                // Update the Rating
+                existingRating.RatingValue = dto.ratingValue;
+                existingRating.Comment = dto.comment;
                 
                 await _ratingRepository.updateAsync(existingRating);
                 _logger.LogInformation("Rating {RatingId} updated", ratingId);
@@ -105,22 +108,22 @@ namespace ScholaAi.Services.Rating
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating rating {RatingId}", ratingId);
+                _logger.LogError(ex, "Error updating Rating {RatingId}", ratingId);
                 throw;
             }
         }
 
-        public async Task<bool> deleteRatingAsync(int ratingId, int? studentId)
+        public async Task<bool> deleteRatingAsync(int ratingId, string? studentId)
         {
             try
             {
-                // Validate rating exists
+                // Validate Rating exists
                 var existingRating = await _ratingRepository.getByIdAsync(ratingId);
                 if (existingRating == null)
                     throw new InvalidOperationException("Rating not found");
 
                 // Validate ownership (if not anonymous)
-                if (studentId.HasValue && existingRating.studentId != studentId)
+                if (!string.IsNullOrEmpty(studentId) && existingRating.StudentId != studentId)
                     throw new UnauthorizedAccessException("You can only delete your own ratings");
 
                 await _ratingRepository.deleteAsync(existingRating);
@@ -130,7 +133,7 @@ namespace ScholaAi.Services.Rating
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting rating {RatingId}", ratingId);
+                _logger.LogError(ex, "Error deleting Rating {RatingId}", ratingId);
                 throw;
             }
         }
@@ -144,7 +147,7 @@ namespace ScholaAi.Services.Rating
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving rating {RatingId}", ratingId);
+                _logger.LogError(ex, "Error retrieving Rating {RatingId}", ratingId);
                 throw;
             }
         }
@@ -158,35 +161,35 @@ namespace ScholaAi.Services.Rating
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving rating for session {SessionId}", sessionId);
+                _logger.LogError(ex, "Error retrieving Rating for Session {SessionId}", sessionId);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<ratingDto>> getTeacherRatingsAsync(int teacherId)
+        public async Task<IEnumerable<ratingDto>> getTeacherRatingsAsync(string teacherId)
         {
             try
             {
                 var ratings = await _ratingRepository.getByTeacherIdAsync(teacherId);
                 return ratings.Select(r => new ratingDto
                 {
-                    ratingId = r.ratingId,
-                    sessionId = r.sessionId,
-                    teacherId = r.teacherId,
-                    studentId = r.studentId,
-                    ratingValue = r.ratingValue,
-                    comment = r.comment,
-                    createdAt = r.createdAt
+                    ratingId = r.RatingId,
+                    sessionId = r.SessionId,
+                    teacherId = r.TeacherId,
+                    studentId = r.StudentId,
+                    ratingValue = r.RatingValue,
+                    comment = r.Comment,
+                    createdAt = r.CreatedAt
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving ratings for teacher {TeacherId}", teacherId);
+                _logger.LogError(ex, "Error retrieving ratings for Teacher {TeacherId}", teacherId);
                 throw;
             }
         }
 
-        public async Task<teacherAverageRatingDto> getTeacherAverageRatingAsync(int teacherId)
+        public async Task<teacherAverageRatingDto> getTeacherAverageRatingAsync(string teacherId)
         {
             try
             {
@@ -202,7 +205,7 @@ namespace ScholaAi.Services.Rating
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving average rating for teacher {TeacherId}", teacherId);
+                _logger.LogError(ex, "Error retrieving average Rating for Teacher {TeacherId}", teacherId);
                 throw;
             }
         }

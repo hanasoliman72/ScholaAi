@@ -4,6 +4,6 @@ namespace ScholaAi.Repositories.Base
 {
     public interface IAvailabilityRepository
     {
-        Task addRangeAsync(List<availability> entities);
+        Task AddRangeAsync(List<Availability> entities);
     }
 }

@@ -3,25 +3,41 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
 {
-    public class session
+    public class Session
     {
         [Key]
-        public int sessionId { get; set; }
-        public int requestId { get; set; }
-        public int teacherId { get; set; }
-        public int studentId { get; set; }
-        public long recordedSession { get; set; }
-        public string summary { get; set; }
+        public int SessionId { get; set; }
+
+        public int RequestId { get; set; }
+
+        // FK → Identity Users
+        [Required]
+        public string TeacherId { get; set; }
+
+        [Required]
+        public string StudentId { get; set; }
+
+        public long RecordedSession { get; set; }
+
+        public string Summary { get; set; }
+
         [Range(0, 100)]
-        public int? focusScore { get; set; }
-        public ICollection<notification> notifications { get; set; } = new List<notification>();
-        [ForeignKey(nameof(teacherId))]
-        public teacher? teacher { get; set; }
-        [ForeignKey(nameof(studentId))]
-        public student? student { get; set; }
-        public rating? rating { get; set; }
-        public transaction? transaction { get; set; }
-        [ForeignKey(nameof(requestId))]
-        public sessionRequest? sessionRequest { get; set; }
+        public int? FocusScore { get; set; }
+
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+        // Navigation
+        [ForeignKey(nameof(TeacherId))]
+        public Teacher Teacher { get; set; }
+
+        [ForeignKey(nameof(StudentId))]
+        public Student Student { get; set; }
+
+        public Rating Rating { get; set; }
+
+        public Transaction Transaction { get; set; }
+
+        [ForeignKey(nameof(RequestId))]
+        public SessionRequest SessionRequest { get; set; }
     }
 }

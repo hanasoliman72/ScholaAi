@@ -2,11 +2,12 @@
 
 namespace ScholaAi.Repositories.Base
 {
-    public interface IRatingRepository : IGenericRepository<rating>
+    public interface IRatingRepository : IGenericRepository<Models.Rating>
     {
-        Task<rating?> getBySessionIdAsync(int sessionId);
-        Task<IEnumerable<rating>> getByTeacherIdAsync(int teacherId);
-        Task<decimal> getTeacherAverageRatingAsync(int teacherId);
+        Task<Models.Rating?> getByIdAsync(int ratingId);
+        Task<Models.Rating?> getBySessionIdAsync(int sessionId);
+        Task<IEnumerable<Models.Rating>> getByTeacherIdAsync(string teacherId);
+        Task<decimal> getTeacherAverageRatingAsync(string teacherId);
         Task<bool> ratingExistsBySessionAsync(int sessionId);
     }
 }

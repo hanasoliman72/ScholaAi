@@ -4,10 +4,10 @@ namespace ScholaAi.Services.Base
 {
     public interface ISessionRequestService
     {
-        Task CreateRequest(int studentId, createSessionRequestDto dto);
-        Task<List<teacherRequestDto>> GetTeacherRequests(int teacherId);
-        Task AcceptRequest(int teacherId, int sessionId);
-        Task RejectRequest(int teacherId, int sessionId);  
-        Task<List<studentSessionDto>> GetStudentRequests(int teacherId);
+        Task CreateRequest(string studentId, createSessionRequestDto dto);
+        Task<List<teacherRequestDto>> GetTeacherRequests(string teacherId);
+        Task AcceptRequest(string teacherId, int sessionId);
+        Task RejectRequest(string teacherId, int sessionId);
+        Task<List<studentSessionDto>> GetStudentRequests(string studentId);
     }
 }

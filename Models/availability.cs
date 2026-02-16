@@ -1,4 +1,7 @@
-﻿namespace ScholaAi.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ScholaAi.Models
 {
     public enum TimeSlot
     {
@@ -6,13 +9,20 @@
         Afternoon,  // 12–17
         Evening     // 17–22
     }
-    public class availability
-    {
-        public int id { get; set; }
-        public DayOfWeek Day { get; set; }
-        public TimeSlot TimeSlot { get; set; }
-        public int userId { get; set; }
 
-        public user user { get; set; }
+    public class Availability
+    {
+        [Key]
+        public int id { get; set; }
+
+        public DayOfWeek day { get; set; }
+
+        public TimeSlot timeSlot { get; set; }
+
+        [Required]
+        public string ApplicationUserId { get; set; }
+
+        [ForeignKey(nameof(ApplicationUserId))]
+        public ApplicationUser ApplicationUser { get; set; }
     }
 }

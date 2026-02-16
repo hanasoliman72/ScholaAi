@@ -3,28 +3,40 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
 {
-    public class rating
+    public class Rating
     {
         [Key]
-        public int ratingId { get; set; }
+        public int RatingId { get; set; }
+
+        // FK → Session
         [Required]
-        public int sessionId { get; set; }
+        public int SessionId { get; set; }
+
+        // FK → Teacher (App)
         [Required]
-        public int teacherId { get; set; }
-        public int? studentId { get; set; }
+        public string TeacherId { get; set; }
+
+        // FK → Student (App) يمكن يكون null لو تقييم عام
+        public string? StudentId { get; set; }
+
         [Required]
         [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5")]
-        public int ratingValue { get; set; }
-        [StringLength(500)]
-        public string? comment { get; set; }
-        [Required]
-        public DateTime createdAt { get; set; } = DateTime.UtcNow;
+        public int RatingValue { get; set; }
 
-        [ForeignKey(nameof(teacherId))]
-        public teacher? teacher { get; set; }
-        [ForeignKey(nameof(sessionId))]
-        public session? session { get; set; }
-        [ForeignKey(nameof(studentId))]
-        public user? student { get; set; }
+        [StringLength(500)]
+        public string? Comment { get; set; }
+
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation
+        [ForeignKey(nameof(TeacherId))]
+        public ApplicationUser Teacher { get; set; }
+
+        [ForeignKey(nameof(StudentId))]
+        public ApplicationUser? Student { get; set; }
+
+        [ForeignKey(nameof(SessionId))]
+        public Session Session { get; set; }
     }
 }
