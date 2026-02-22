@@ -4,7 +4,7 @@
     {
         public string StudentName { get; set; }
 
-        public double AvgFocus { get; set; }
+        public double AvgFocusScore { get; set; }
 
         public int SessionsThisMonth { get; set; }
 
