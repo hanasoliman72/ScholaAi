@@ -19,6 +19,7 @@ using System.Text;
 using ScholaAi.Data.Seeders;
 using ScholaAi.Services.sessions;
 using ScholaAi.Services.Student;
+using ScholaAi.Services.teacher;
 
 namespace ScholaAi
 {
@@ -56,6 +57,7 @@ namespace ScholaAi
             builder.Services.AddScoped<IRatingService, ratingService>();
             builder.Services.AddScoped<ITeacherProfileService, teacherProfileService>();
             builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
+            builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
 
             // Repositories
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(genericRepository<>));
@@ -67,6 +69,7 @@ namespace ScholaAi
             builder.Services.AddScoped<IRequestBroadcastRepository, requestBroadcastRepository>();
             builder.Services.AddScoped<ISessionRequestRepository, sessionRequestRepository>();
             builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
+            builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
 
             //JWT
             builder.Services.AddAuthentication(options =>
