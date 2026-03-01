@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ScholaAi.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class aaaa : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
