@@ -53,7 +53,7 @@ namespace ScholaAi.Services.User
             await _userManager.AddToRoleAsync(user, "Student");
 
             // إنشاء سجل الطالب
-            await _studentRepository.AddAsync(new Student
+            await _studentRepository.AddAsync(new Models.Student
             {
                 ApplicationUserId = user.Id,
                 Grade = dto.Grade

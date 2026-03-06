@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ScholaAi.DTOs.Student;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using System;
