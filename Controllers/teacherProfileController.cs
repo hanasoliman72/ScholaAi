@@ -84,6 +84,23 @@ namespace ScholaAi.Controllers
 
             return Ok("Password changed successfully");
         }
+        [HttpPost("{userId}/uploadPhoto")]
+        public async Task<IActionResult> uploadPhoto(string userId, IFormFile file)
+        {
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
+            if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
+
+            var photoUrl = await _teacherProfileService.uploadProfilePhotoAsync(userId, file);
+            if (photoUrl == null) return NotFound("Student not found.");
+
+            return Ok(new { photoUrl });
+        }
 
     }
 }

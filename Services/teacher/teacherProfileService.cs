@@ -94,6 +94,22 @@ namespace ScholaAi.Services.Teacher
 
             return result.Succeeded;
         }
+        public async Task<string?> uploadProfilePhotoAsync(string userId, IFormFile file)
+        {
+            var user = await _userRepository.getByIdAsync(userId);
+            if (user == null)
+                return null;
+
+            var photoUrl = await _fileUploadService.UploadFileAsync(file, "profile-photos");
+            if (photoUrl == null)
+                return null;
+
+            user.ProfilePhotoURL = photoUrl;
+            await _userRepository.updateAsync(user);
+
+            return photoUrl;
+        }
+        
 
     }
 }

@@ -12,5 +12,6 @@ namespace ScholaAi.Services.Teacher
            string? subject,
            string? keyword);
         Task<bool> ChangePasswordAsync(string userId, changePasswordDto dto);
+        Task<string?> uploadProfilePhotoAsync(string userId, IFormFile file);
     }
 }
