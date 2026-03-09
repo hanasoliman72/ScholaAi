@@ -64,5 +64,26 @@ namespace ScholaAi.Controllers
 
             return Ok(result);
         }
+        // POST: api/studentProfile/{userId}/changePassword
+        [HttpPost("{userId}/changePassword")]
+        public async Task<IActionResult> changePassword(string userId, [FromBody] DTOs.Common.changePasswordDto dto)
+        {
+           
+            var userID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userID))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (userId != userID)
+                return Unauthorized("You can only access your own profile");
+
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var result = await _teacherProfileService.ChangePasswordAsync(userId, dto);
+            if (!result) return BadRequest("Current password is incorrect or Student not found.");
+
+            return Ok("Password changed successfully");
+        }
+
     }
 }

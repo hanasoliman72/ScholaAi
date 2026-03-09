@@ -1,4 +1,5 @@
-﻿using ScholaAi.DTOs.Teacher;
+﻿using ScholaAi.DTOs.Common;
+using ScholaAi.DTOs.Teacher;
 using ScholaAi.DTOs.Teatcher;
 
 namespace ScholaAi.Services.Teacher
@@ -10,5 +11,6 @@ namespace ScholaAi.Services.Teacher
            string? name,
            string? subject,
            string? keyword);
+        Task<bool> ChangePasswordAsync(string userId, changePasswordDto dto);
     }
 }
