@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
@@ -98,6 +98,20 @@ namespace ScholaAi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+             // CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReact",
+                    policy =>
+                    {
+                        policy
+                            .WithOrigins("http://localhost:5173") // React (Vite)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+            });
+            
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -129,6 +143,8 @@ namespace ScholaAi
 
             app.UseStaticFiles();
 
+            // Order matters: CORS → Auth → Authorization
+            app.UseCors("AllowReact");
             app.UseAuthentication();
             app.UseAuthorization();
 
