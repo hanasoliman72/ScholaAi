@@ -20,7 +20,8 @@ namespace ScholaAi.DTOs.Teacher
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
 
-        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$")]
+        [Phone]
+        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
         [MaxLength(20)]
         public string Phone { get; set; }
 
