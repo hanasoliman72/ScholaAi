@@ -114,7 +114,7 @@ namespace ScholaAi.Services.Teacher
         public async Task<(bool success, string message)> UpdateTeacherProfileAsync(string userId,
             updateTeacherProfileDto dto)
         {
-            var teacher = await _teacherRepository.getByIdAsync(userId);
+            var teacher = await _teacherRepository.getByIdWithUserAsync(userId);
 
             if (teacher == null || teacher.ApplicationUser == null)
                 return (false, "Teacher profile not found.");
