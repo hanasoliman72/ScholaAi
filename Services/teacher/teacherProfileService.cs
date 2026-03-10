@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using ScholaAi.DTOs.Common;
+using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teacher;
 using ScholaAi.DTOs.Teatcher;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
+using ScholaAi.Repositories.Student;
 using ScholaAi.Repositories.User;
 using ScholaAi.Services.Base;
 
@@ -109,7 +111,54 @@ namespace ScholaAi.Services.Teacher
 
             return photoUrl;
         }
-        
+        public async Task<(bool success, string message)> UpdateTeacherProfileAsync(string userId,
+            updateTeacherProfileDto dto)
+        {
+            var teacher = await _teacherRepository.getByIdAsync(userId);
+
+            if (teacher == null || teacher.ApplicationUser == null)
+                return (false, "Teacher profile not found.");
+
+            var user = teacher.ApplicationUser;
+
+            // username
+            if (!string.IsNullOrWhiteSpace(dto.userName))
+            {
+                var userExists = await _userRepository.getUserByUserNameAsync(dto.userName);
+                if (userExists != null && userExists.Id != userId)
+                    return (false, "Username is already taken.");
+
+                user.UserName = dto.userName;
+            }
+
+            // basic user info
+            if (!string.IsNullOrWhiteSpace(dto.firstName))
+                user.FirstName = dto.firstName;
+
+            if (!string.IsNullOrWhiteSpace(dto.lastName))
+                user.LastName = dto.lastName;
+
+            if (!string.IsNullOrWhiteSpace(dto.phone))
+                user.PhoneNumber = dto.phone;
+
+            if (!string.IsNullOrWhiteSpace(dto.description))
+                user.Description = dto.description;
+
+            // teacher specific info
+            if (!string.IsNullOrWhiteSpace(dto.college))
+                teacher.College = dto.college;
+
+            if (!string.IsNullOrWhiteSpace(dto.certificate))
+                teacher.Certificate = dto.certificate;
+
+            if (!string.IsNullOrWhiteSpace(dto.teachingExperience))
+                teacher.TeachingExperience = dto.teachingExperience;
+
+            await _userRepository.updateAsync(user);
+            await _teacherRepository.updateAsync(teacher);
+
+            return (true, "Teacher profile updated successfully");
+        }
 
     }
 }

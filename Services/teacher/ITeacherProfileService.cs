@@ -1,4 +1,5 @@
 ﻿using ScholaAi.DTOs.Common;
+using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teacher;
 using ScholaAi.DTOs.Teatcher;
 
@@ -13,5 +14,9 @@ namespace ScholaAi.Services.Teacher
            string? keyword);
         Task<bool> ChangePasswordAsync(string userId, changePasswordDto dto);
         Task<string?> uploadProfilePhotoAsync(string userId, IFormFile file);
+        Task<(bool success, string message)> UpdateTeacherProfileAsync(string userId,
+      updateTeacherProfileDto dto);
+
+
     }
 }
