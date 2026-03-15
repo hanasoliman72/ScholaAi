@@ -18,6 +18,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ScholaAi.Data.Seeders;
 using ScholaAi.Services.sessions;
+using ScholaAi.Hubs;
+using ScholaAi.Repositories.Notification;
+using ScholaAi.Services.Notifications;
+using Microsoft.AspNetCore.SignalR;
+using ScholaAi.SignalR;
 
 namespace ScholaAi
 {
@@ -54,6 +59,7 @@ namespace ScholaAi
             builder.Services.AddScoped<ISessionRequestService, sessionRequestService>();
             builder.Services.AddScoped<IRatingService, ratingService>();
             builder.Services.AddScoped<ITeacherProfileService, teacherProfileService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             // Repositories
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(genericRepository<>));
@@ -64,6 +70,7 @@ namespace ScholaAi
             builder.Services.AddScoped<IRatingRepository, ratingRepository>();
             builder.Services.AddScoped<IRequestBroadcastRepository, requestBroadcastRepository>();
             builder.Services.AddScoped<ISessionRequestRepository, sessionRequestRepository>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
             //JWT
             builder.Services.AddAuthentication(options =>
@@ -92,6 +99,10 @@ namespace ScholaAi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            //builder.Services.AddAuthentication();
+            builder.Services.AddAuthorization();
+            builder.Services.AddSignalR();
+            builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -121,10 +132,16 @@ namespace ScholaAi
             //    ratingSeeder.SeedRatingData(context);
             //}
 
+        
+
+
             app.UseStaticFiles();
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapHub<ChatHub>("/chatHub");
+            app.MapHub<NotificationHub>("/notificationHub");
+
 
             app.MapControllers();
 

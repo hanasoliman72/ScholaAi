@@ -12,8 +12,8 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20260216190640_init")]
-    partial class init
+    [Migration("20260315034750_AddRequestIdToNotifications")]
+    partial class AddRequestIdToNotifications
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -371,6 +371,9 @@ namespace ScholaAi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("RequestId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SenderId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -384,6 +387,8 @@ namespace ScholaAi.Migrations
                     b.HasKey("NotificationId");
 
                     b.HasIndex("ReceiverId");
+
+                    b.HasIndex("RequestId");
 
                     b.HasIndex("SenderId");
 
@@ -799,6 +804,10 @@ namespace ScholaAi.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("ScholaAi.Models.SessionRequest", "SessionRequestReference")
+                        .WithMany()
+                        .HasForeignKey("RequestId");
+
                     b.HasOne("ScholaAi.Models.ApplicationUser", "Sender")
                         .WithMany("SentNotifications")
                         .HasForeignKey("SenderId")
@@ -815,6 +824,8 @@ namespace ScholaAi.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("SessionNotification");
+
+                    b.Navigation("SessionRequestReference");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.Rating", b =>
