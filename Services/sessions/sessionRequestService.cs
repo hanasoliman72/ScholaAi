@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScholaAi.DTOs.Sessions;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
@@ -10,16 +10,19 @@ namespace ScholaAi.Services.sessions
     {
         private readonly ISessionRequestRepository _requestRepo;
         private readonly IRequestBroadcastRepository _broadcastRepo;
+        private readonly INotificationService _notificationService;
         private readonly DBcontext _context;
 
         public sessionRequestService(
             ISessionRequestRepository requestRepo,
-            IRequestBroadcastRepository broadcastRepo,
+            IRequestBroadcastRepository broadcastRepo,INotificationService notificationService,
             DBcontext context)
         {
             _requestRepo = requestRepo;
             _broadcastRepo = broadcastRepo;
+            _notificationService = notificationService;
             _context = context;
+
         }
 
         public async Task CreateRequest(string studentId, createSessionRequestDto dto)
@@ -50,6 +53,15 @@ namespace ScholaAi.Services.sessions
                     TeacherId = teacherId,
                     RequestId = request.RequestId
                 });
+               
+                await _notificationService.SendNotification(
+                    studentId,
+                    teacherId,
+                    "New session request available",
+                    NotificationType.Request,
+                    null,
+                    request.RequestId
+                );
             }
 
             await _context.SaveChangesAsync();
@@ -62,7 +74,7 @@ namespace ScholaAi.Services.sessions
 
         public async Task AcceptRequest(string teacherId, int sessionId)
         {
-            // ✅ Use transaction to prevent race conditions
+            // ? Use transaction to prevent race conditions
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
@@ -72,14 +84,14 @@ namespace ScholaAi.Services.sessions
                 if (request == null)
                     throw new Exception("Request not found");
 
-                // ✅ Check if teacher is authorized to accept this request
+                // ? Check if teacher is authorized to accept this request
                 var broadcast = await _context.RequestBroadcasts
                     .FirstOrDefaultAsync(b => b.TeacherId == teacherId && b.RequestId == sessionId);
 
                 if (broadcast == null)
                     throw new Exception("You are not authorized to accept this request");
 
-                // ✅ Double-check status (race condition protection)
+                // ? Double-check status (race condition protection)
                 if (request.Status != RequestStatus.Pending)
                     throw new Exception("Request already accepted by another teacher");
 
@@ -91,11 +103,21 @@ namespace ScholaAi.Services.sessions
                 // Update broadcast
                 await _broadcastRepo.Accept(teacherId, sessionId);
 
+
                 // Remove other teachers' broadcasts
                 await _broadcastRepo.RemoveOthers(sessionId, teacherId);
 
                 await _requestRepo.Save();
                 await transaction.CommitAsync();
+                await _notificationService.SendNotification(
+                    teacherId,
+                    request.StudentId,
+                    "Your session request has been accepted",
+                    NotificationType.Session,
+                    null,
+                    request.RequestId
+                );
+                //await transaction.CommitAsync();
             }
             catch
             {
@@ -106,7 +128,7 @@ namespace ScholaAi.Services.sessions
 
         public async Task RejectRequest(string teacherId, int sessionId)
         {
-            // ✅ Check if teacher has this broadcast
+            // ? Check if teacher has this broadcast
             var broadcast = await _context.RequestBroadcasts
                 .FirstOrDefaultAsync(b => b.TeacherId == teacherId && b.RequestId == sessionId);
 
@@ -114,7 +136,7 @@ namespace ScholaAi.Services.sessions
                 throw new Exception("Request not found or already removed");
 
             await _broadcastRepo.Remove(teacherId, sessionId);
-            await _context.SaveChangesAsync(); // ✅ FIX: Was missing!
+            await _context.SaveChangesAsync(); // ? FIX: Was missing!
         }
 
         public async Task<List<studentSessionDto>> GetStudentRequests(string studentId)

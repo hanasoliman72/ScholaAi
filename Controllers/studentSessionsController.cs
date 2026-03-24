@@ -12,10 +12,13 @@ namespace ScholaAi.Controllers
     public class studentSessionsController : ControllerBase
     {
         private readonly ISessionRequestService _sessionService;
+        
 
         public studentSessionsController(ISessionRequestService sessionService)
         {
             _sessionService = sessionService;
+           
+
         }
 
         // ============================

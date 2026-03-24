@@ -323,6 +323,9 @@ namespace ScholaAi.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MessageText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -368,6 +371,9 @@ namespace ScholaAi.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("RequestId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SenderId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -381,6 +387,8 @@ namespace ScholaAi.Migrations
                     b.HasKey("NotificationId");
 
                     b.HasIndex("ReceiverId");
+
+                    b.HasIndex("RequestId");
 
                     b.HasIndex("SenderId");
 
@@ -796,6 +804,10 @@ namespace ScholaAi.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("ScholaAi.Models.SessionRequest", "SessionRequestReference")
+                        .WithMany()
+                        .HasForeignKey("RequestId");
+
                     b.HasOne("ScholaAi.Models.ApplicationUser", "Sender")
                         .WithMany("SentNotifications")
                         .HasForeignKey("SenderId")
@@ -812,6 +824,8 @@ namespace ScholaAi.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("SessionNotification");
+
+                    b.Navigation("SessionRequestReference");
                 });
 
             modelBuilder.Entity("ScholaAi.Models.Rating", b =>
