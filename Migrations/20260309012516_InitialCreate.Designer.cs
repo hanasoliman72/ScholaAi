@@ -12,8 +12,13 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
+<<<<<<<< HEAD:Migrations/20260228141314_init.Designer.cs
+    [Migration("20260228141314_init")]
+    partial class init
+========
     [Migration("20260309012516_InitialCreate")]
     partial class InitialCreate
+>>>>>>>> main:Migrations/20260309012516_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
