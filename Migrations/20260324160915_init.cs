@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ScholaAi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -205,8 +205,9 @@ namespace ScholaAi.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ReceiverId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    MessageText = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MessageText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AttachmentURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MessageType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
                     SentAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -428,6 +429,7 @@ namespace ScholaAi.Migrations
                     SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ReceiverId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SessionId = table.Column<int>(type: "int", nullable: true),
+                    RequestId = table.Column<int>(type: "int", nullable: true),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
@@ -446,6 +448,11 @@ namespace ScholaAi.Migrations
                         column: x => x.SenderId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Notifications_SessionRequests_RequestId",
+                        column: x => x.RequestId,
+                        principalTable: "SessionRequests",
+                        principalColumn: "RequestId");
                     table.ForeignKey(
                         name: "FK_Notifications_Sessions_SessionId",
                         column: x => x.SessionId,
@@ -601,6 +608,11 @@ namespace ScholaAi.Migrations
                 name: "IX_Notifications_ReceiverId",
                 table: "Notifications",
                 column: "ReceiverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_RequestId",
+                table: "Notifications",
+                column: "RequestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_SenderId",
