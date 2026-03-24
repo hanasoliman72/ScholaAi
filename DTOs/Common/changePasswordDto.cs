@@ -8,6 +8,8 @@ namespace ScholaAi.DTOs.Common
         public string currentPassword {  get; set; }
         [Required]
         [MinLength(6)]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).+$",
+          ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, and one special character.")]
         public string newPassword { get; set; }
         [Required]
         [Compare("newPassword")]
