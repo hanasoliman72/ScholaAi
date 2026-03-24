@@ -33,6 +33,16 @@ namespace ScholaAi.Services.User
 
             return await _repo.AddAsync(message);
         }
+
+        public async Task<List<ChatMessage>> GetChatHistoryAsync(string userId1, string userId2)
+        {
+            return await _repo.GetChatHistoryAsync(userId1, userId2);
+        }
+
+        public async Task<List<ScholaAi.DTOs.Chat.ConversationSummaryDto>> GetUserConversationsAsync(string userId)
+        {
+            return await _repo.GetUserConversationsAsync(userId);
+        }
     }
 }
 

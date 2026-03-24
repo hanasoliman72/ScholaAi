@@ -1,4 +1,4 @@
-﻿using ScholaAi.Models;
+using ScholaAi.Models;
 
 namespace ScholaAi.Services.Base
 {
@@ -11,5 +11,7 @@ namespace ScholaAi.Services.Base
        string? attachmentUrl,
        string messageType);
 
+        Task<List<ChatMessage>> GetChatHistoryAsync(string userId1, string userId2);
+        Task<List<ScholaAi.DTOs.Chat.ConversationSummaryDto>> GetUserConversationsAsync(string userId);
     }
 }
