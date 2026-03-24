@@ -12,8 +12,8 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20260315034750_AddRequestIdToNotifications")]
-    partial class AddRequestIdToNotifications
+    [Migration("20260324160915_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -326,6 +326,9 @@ namespace ScholaAi.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MessageText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

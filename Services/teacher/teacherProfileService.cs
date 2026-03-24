@@ -3,6 +3,7 @@ using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teacher;
 using ScholaAi.DTOs.Teatcher;
+using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.Student;
 using ScholaAi.Repositories.User;
