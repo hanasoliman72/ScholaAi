@@ -78,7 +78,7 @@ namespace ScholaAi.Services
 
 
         // Helper method to get paymentHistory
-        private List<PaymentHistoryItemDto> getPaymentHistory(Student student)
+        private List<PaymentHistoryItemDto> getPaymentHistory(Models.Student student)
         {
             if(student.ApplicationUser?.Wallet == null) return new List<PaymentHistoryItemDto>();
 

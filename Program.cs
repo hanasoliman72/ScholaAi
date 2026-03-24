@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
@@ -23,6 +23,8 @@ using ScholaAi.Repositories.Notification;
 using ScholaAi.Services.Notifications;
 using Microsoft.AspNetCore.SignalR;
 using ScholaAi.SignalR;
+using ScholaAi.Services.Student;
+using ScholaAi.Services.teacher;
 
 namespace ScholaAi
 {
@@ -61,6 +63,10 @@ namespace ScholaAi
             builder.Services.AddScoped<ITeacherProfileService, teacherProfileService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
 
+            builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
+            builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
+
+
             // Repositories
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(genericRepository<>));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -70,7 +76,12 @@ namespace ScholaAi
             builder.Services.AddScoped<IRatingRepository, ratingRepository>();
             builder.Services.AddScoped<IRequestBroadcastRepository, requestBroadcastRepository>();
             builder.Services.AddScoped<ISessionRequestRepository, sessionRequestRepository>();
+
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
+            builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
+            builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
+
 
             //JWT
             builder.Services.AddAuthentication(options =>
@@ -99,10 +110,27 @@ namespace ScholaAi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
             //builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
+
+             // CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReact",
+                    policy =>
+                    {
+                        policy
+                            .WithOrigins("http://localhost:5173") // React (Vite)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+            });
+            
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -137,6 +165,8 @@ namespace ScholaAi
 
             app.UseStaticFiles();
 
+            // Order matters: CORS → Auth → Authorization
+            app.UseCors("AllowReact");
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapHub<ChatHub>("/chatHub");
