@@ -62,7 +62,6 @@ namespace ScholaAi
             builder.Services.AddScoped<IRatingService, ratingService>();
             builder.Services.AddScoped<ITeacherProfileService, teacherProfileService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
-
             builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
 
@@ -76,9 +75,7 @@ namespace ScholaAi
             builder.Services.AddScoped<IRatingRepository, ratingRepository>();
             builder.Services.AddScoped<IRequestBroadcastRepository, requestBroadcastRepository>();
             builder.Services.AddScoped<ISessionRequestRepository, sessionRequestRepository>();
-
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
             builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
             builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
 
@@ -111,12 +108,12 @@ namespace ScholaAi
             builder.Services.AddSwaggerGen();
 
 
-            //builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
-
-             // CORS
+            builder.Services.AddSingleton<RoomService>();
+            
+            // CORS
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReact",
@@ -170,7 +167,8 @@ namespace ScholaAi
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapHub<ChatHub>("/chatHub");
-            app.MapHub<NotificationHub>("/notificationHub");
+            app.MapHub<NotificationHub>("/notificationHub"); 
+            app.MapHub<SessionHub>("/hub/session");
 
 
             app.MapControllers();
