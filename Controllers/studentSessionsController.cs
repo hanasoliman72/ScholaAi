@@ -12,13 +12,12 @@ namespace ScholaAi.Controllers
     public class studentSessionsController : ControllerBase
     {
         private readonly ISessionRequestService _sessionService;
-        
+        private readonly ISessionStreamService _sessionStreamService;
 
-        public studentSessionsController(ISessionRequestService sessionService)
+        public studentSessionsController(ISessionRequestService sessionService, ISessionStreamService sessionStream)
         {
             _sessionService = sessionService;
-           
-
+            _sessionStreamService = sessionStream;
         }
 
         // ============================
@@ -61,6 +60,53 @@ namespace ScholaAi.Controllers
             var requests = await _sessionService.GetStudentRequests(studentId);
 
             return Ok(requests);
+        }
+
+        // GET: api/studentSessions/{sessionId}
+        [HttpGet("{sessionId}")]
+        public async Task<IActionResult> GetSession(int sessionId)
+        {
+            var studentId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(studentId))
+                return Unauthorized(new { message = "Invalid token" });
+            try
+            {
+                var session = await _sessionStreamService.GetSessionById(sessionId);
+                if (session.StudentId != studentId)
+                    return Forbid();
+                return Ok(new SessionDetailsDto
+                {
+                    SessionId = session.SessionId,
+                    TeacherId = session.TeacherId,
+                    StudentId = session.StudentId,
+                    Status = session.Status,
+                    RoomId = session.RoomId,
+                    StartedAt = session.StartedAt,
+                    EndedAt = session.EndedAt,
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/teacherSessions/{sessionId}/join
+        [HttpPost("{sessionId}/join")]
+        public async Task<IActionResult> Join(int sessionId)
+        {
+            var studentId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(studentId))
+                return Unauthorized(new { message = "Invalid token" });
+            try
+            {
+                var result = await _sessionStreamService.JoinSession(studentId, sessionId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

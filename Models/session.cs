@@ -7,36 +7,28 @@ namespace ScholaAi.Models
     {
         [Key]
         public int SessionId { get; set; }
-
         public int RequestId { get; set; }
-
-        // FK → Identity Users
         [Required]
         public string TeacherId { get; set; }
-
         [Required]
         public string StudentId { get; set; }
-
         public long RecordedSession { get; set; }
-
         public string Summary { get; set; }
-
         [Range(0, 100)]
         public int? FocusScore { get; set; }
 
-        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public string Status { get; set; } = "pending"; // pending | active | ended
+        public DateTime? StartedAt { get; set; }
+        public DateTime? EndedAt { get; set; }
+        public string RoomId { get; set; } // mediasoup room ID
 
-        // Navigation
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         [ForeignKey(nameof(TeacherId))]
         public Teacher Teacher { get; set; }
-
         [ForeignKey(nameof(StudentId))]
         public Student Student { get; set; }
-
         public Rating Rating { get; set; }
-
         public Transaction Transaction { get; set; }
-
         [ForeignKey(nameof(RequestId))]
         public SessionRequest SessionRequest { get; set; }
     }

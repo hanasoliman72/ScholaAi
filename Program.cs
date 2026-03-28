@@ -64,6 +64,7 @@ namespace ScholaAi
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
+            builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
 
 
             // Repositories
