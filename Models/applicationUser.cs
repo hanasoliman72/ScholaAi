@@ -34,6 +34,10 @@ namespace ScholaAi.Models
 
         public string? ProfilePhotoURL { get; set; }
 
+        // ===== Suspension =====
+        public bool IsSuspended { get; set; } = false;
+        public DateTime? SuspendedUntil { get; set; }
+
         // ===== Navigation =====
         public Student? Student { get; set; }
         public Teacher? Teacher { get; set; }
