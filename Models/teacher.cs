@@ -8,6 +8,9 @@ namespace ScholaAi.Models
         [Key]
         public string ApplicationUserId { get; set; }
 
+        public bool isVerified { get; set; } = false;
+        public string? verificationNotes { get; set; }
+
         [Required]
         public string College { get; set; }
 

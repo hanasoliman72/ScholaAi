@@ -5,6 +5,7 @@ using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Services.Base;
 using System.Text;
+using static Azure.Core.HttpHeader;
 
 
 namespace ScholaAi.Services.Admin
@@ -30,6 +31,30 @@ namespace ScholaAi.Services.Admin
         // ═══════════════════════════════════════════════════════
         public async Task<AdminDashboardDto> GetDashboardAsync()
             => await _adminRepo.GetDashboardStatsAsync();
+
+        // ═══════════════════════════════════════════════════════
+        // ADMIN LOGS
+        // ═══════════════════════════════════════════════════════
+        public async Task<List<AdminLogDto>> GetAdminLogsAsync()
+        {
+            return await _context.AdminLogs
+                .Include(l => l.Admin)
+                .Include(l => l.TargetUser)
+                .OrderByDescending(l => l.CreatedAt)
+                .Select(l => new AdminLogDto
+                {
+                    LogId = l.LogId,
+                    AdminName = l.Admin.FirstName + " " + l.Admin.LastName,
+                    TargetUserName = l.TargetUser != null
+                                     ? l.TargetUser.FirstName + " " + l.TargetUser.LastName
+                                     : null,
+                    Details = l.Details,
+                    CreatedAt = l.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+
 
         // ═══════════════════════════════════════════════════════
         // USERS
@@ -165,33 +190,134 @@ namespace ScholaAi.Services.Admin
             return true;
         }
 
-        public async Task<bool> DeleteUserAsync(string userId)
-            => await _adminRepo.DeleteUserAsync(userId);
 
-        public async Task<bool> ChangeUserRoleAsync(string userId, ChangeUserRoleDto dto)
+        //public async Task<bool> DeleteUserAsync(string adminId, string userId)
+        //{
+        //    // Log before deleting (after delete the user won't exist)
+        //    await LogActionAsync(adminId, userId, "User deleted by admin");
+        //    return await _adminRepo.DeleteUserAsync(userId);
+        //}
+
+        public async Task<bool> DeleteUserAsync(string adminId, string userId)
+        {
+            // Get user details BEFORE deleting so we can log their name
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            var userName = user.UserName;
+            var userEmail = user.Email;
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "Unknown";
+
+            // Now delete
+            var result = await _adminRepo.DeleteUserAsync(userId);
+
+            // Log AFTER successful deletion with full details
+            if (result)
+            {
+                await LogActionAsync(
+                    adminId,
+                    null, // target user no longer exists
+                    $"Deleted {userRole} account — Username: {userName}, Email: {userEmail}"
+                );
+            }
+
+            return result;
+        }
+        //public async Task<bool> DeleteUserAsync(string userId)
+        //    => await _adminRepo.DeleteUserAsync(userId);
+
+
+        //public async Task<bool> ChangeUserRoleAsync(string userId, ChangeUserRoleDto dto)
+        //{
+        //    var validRoles = new[] { "Student", "Teacher", "Admin" };
+        //    if (!validRoles.Contains(dto.NewRole))
+        //        throw new ArgumentException("Invalid role. Must be Student, Teacher, or Admin");
+
+        //    return await _adminRepo.ChangeUserRoleAsync(userId, dto.NewRole);
+        //}
+
+        public async Task<bool> ChangeUserRoleAsync(string adminId, string userId, ChangeUserRoleDto dto)
         {
             var validRoles = new[] { "Student", "Teacher", "Admin" };
             if (!validRoles.Contains(dto.NewRole))
                 throw new ArgumentException("Invalid role. Must be Student, Teacher, or Admin");
 
-            return await _adminRepo.ChangeUserRoleAsync(userId, dto.NewRole);
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            var oldRoles = await _userManager.GetRolesAsync(user);
+            var oldRole = oldRoles.FirstOrDefault() ?? "Unknown";
+
+            var result = await _adminRepo.ChangeUserRoleAsync(userId, dto.NewRole);
+
+            // Log the action
+            if (result)
+            {
+                await LogActionAsync(
+                    adminId,
+                    userId,
+                    $"Changed role — Username: {user.UserName}, " +
+                    $"Old role: {oldRole}, " +
+                    $"New role: {dto.NewRole}"
+                );
+            }
+
+            return result;
         }
 
-        public async Task<bool> SuspendUserAsync(string userId, SuspendUserDto dto)
+
+        //public async Task<bool> SuspendUserAsync(string userId, SuspendUserDto dto)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null) return false;
+
+        //    await _adminRepo.SuspendUserAsync(userId, dto.DurationInDays);
+        //    return true;
+        //}
+
+        public async Task<bool> SuspendUserAsync(string adminId, string userId, SuspendUserDto dto)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
 
             await _adminRepo.SuspendUserAsync(userId, dto.DurationInDays);
+
+            // Log the action
+            await LogActionAsync(
+                adminId,
+                userId,
+                $"Suspended user — Username: {user.UserName}, " +
+                $"Duration: {dto.DurationInDays} days, " +
+                $"Reason: {dto.Reason ?? "No reason provided"}, " +
+                $"Suspended until: {DateTime.UtcNow.AddDays(dto.DurationInDays):yyyy-MM-dd}"
+            );
             return true;
         }
 
-        public async Task<bool> UnsuspendUserAsync(string userId)
+        //public async Task<bool> UnsuspendUserAsync(string userId)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null) return false;
+
+        //    await _adminRepo.UnsuspendUserAsync(userId);
+        //    return true;
+        //}
+
+
+        public async Task<bool> UnsuspendUserAsync(string adminId, string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
 
             await _adminRepo.UnsuspendUserAsync(userId);
+
+            // Log the action
+            await LogActionAsync(
+                adminId,
+                userId,
+                $"Unsuspended user — Username: {user.UserName}"
+            );
             return true;
         }
 
@@ -324,5 +450,159 @@ namespace ScholaAi.Services.Admin
                 AverageRating = u.Teacher?.TotalRates > 0
                                      ? u.Teacher.TotalRates : null
             };
+        // ═══════════════════════════════════════════════════════
+        // TEACHER VERIFICATION
+        // ═══════════════════════════════════════════════════════
+
+     
+        public async Task<bool> VerifyTeacherAsync(string adminId, string teacherId, string? notes)
+        {
+            var teacher = await _context.Teachers
+                .Include(t => t.ApplicationUser)
+                .FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+            if (teacher == null) return false;
+
+            teacher.isVerified = true;
+            teacher.verificationNotes = notes;
+            await _context.SaveChangesAsync();
+
+            // Log the action
+            await LogActionAsync(
+                adminId,
+                teacherId,
+                $"Verified teacher — Username: {teacher.ApplicationUser?.UserName}, " +
+                $"Notes: {notes ?? "No notes"}"
+            );
+            return true;
+        }
+
+
+        //public async Task<bool> VerifyTeacherAsync(string teacherId, string? notes)
+        //{
+        //    var teacher = await _context.Teachers
+        //        .FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+        //    if (teacher == null) return false;
+
+        //    teacher.isVerified = true;
+        //    teacher.verificationNotes = notes;
+        //    await _context.SaveChangesAsync();
+        //    return true;
+        //}
+
+        //public async Task<bool> UnverifyTeacherAsync(string teacherId)
+        //{
+        //    var teacher = await _context.Teachers
+        //        .FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+        //    if (teacher == null) return false;
+
+        //    teacher.isVerified = false;
+        //    teacher.verificationNotes = null;
+        //    await _context.SaveChangesAsync();
+        //    return true;
+        //}
+
+       
+        public async Task<bool> UnverifyTeacherAsync(string adminId, string teacherId)
+        {
+            var teacher = await _context.Teachers
+                .Include(t => t.ApplicationUser)
+                .FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+            if (teacher == null) return false;
+
+            teacher.isVerified = false;
+            teacher.verificationNotes = null;
+            await _context.SaveChangesAsync();
+
+            await LogActionAsync(
+                adminId,
+                teacherId,
+                $"Unverified teacher — Username: {teacher.ApplicationUser?.UserName}"
+            );
+            return true;
+        }
+
+
+
+        // ═══════════════════════════════════════════════════════
+        // RATINGS
+        // ═══════════════════════════════════════════════════════
+        public async Task<List<AdminRatingDto>> GetAllRatingsAsync()
+        {
+            return await _context.Ratings
+                .Include(r => r.Teacher)
+                .Include(r => r.Student)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new AdminRatingDto
+                {
+                    RatingId = r.RatingId,
+                    TeacherName = r.Teacher.FirstName + " " + r.Teacher.LastName,
+                    StudentName = r.Student != null
+                                  ? r.Student.FirstName + " " + r.Student.LastName
+                                  : null,
+                    RatingValue = r.RatingValue,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ADMIN PROFILE UPDATE & CHANGE PASSWORD
+        // ═══════════════════════════════════════════════════════
+        public async Task<bool> UpdateAdminProfileAsync(string adminId, AdminEditProfileDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(adminId);
+            if (user == null) return false;
+
+            if (!string.IsNullOrWhiteSpace(dto.FirstName))
+                user.FirstName = dto.FirstName;
+
+            if (!string.IsNullOrWhiteSpace(dto.LastName))
+                user.LastName = dto.LastName;
+
+            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+                user.PhoneNumber = dto.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> ChangeAdminPasswordAsync(string adminId, AdminChangePasswordDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(adminId);
+            if (user == null) return false;
+
+            var result = await _userManager.ChangePasswordAsync(
+                user,
+                dto.CurrentPassword,
+                dto.NewPassword);
+
+            return result.Succeeded;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ADMIN LOGS HELPER
+        // ═══════════════════════════════════════════════════════
+        private async Task LogActionAsync(string adminId, string? targetUserId, string details)
+        {
+            try
+            {
+                _context.AdminLogs.Add(new AdminLogs
+                {
+                    AdminId = adminId,
+                    TargetUserId = targetUserId,
+                    Details = details,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                // Logging should never break the main action
+            }
+        }
+
     }
+
+
 }

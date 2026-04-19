@@ -109,12 +109,48 @@ namespace ScholaAi.Repositories.Admin
         //    var result = await _userManager.DeleteAsync(user);
         //    return result.Succeeded;
         //}
+        //public async Task<bool> DeleteUserAsync(string userId)
+        //{
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    if (user == null) return false;
+
+        //    // Delete related records first to avoid foreign key conflicts
+
+        //    // Delete Availability records
+        //    var availability = _context.Availability
+        //        .Where(a => a.ApplicationUserId == userId);
+        //    _context.Availability.RemoveRange(availability);
+
+        //    // Delete Student record if exists
+        //    var student = await _context.Students
+        //        .FirstOrDefaultAsync(s => s.ApplicationUserId == userId);
+        //    if (student != null)
+        //        _context.Students.Remove(student);
+
+        //    // Delete Teacher record if exists
+        //    var teacher = await _context.Teachers
+        //        .FirstOrDefaultAsync(t => t.ApplicationUserId == userId);
+        //    if (teacher != null)
+        //        _context.Teachers.Remove(teacher);
+
+        //    // Delete Wallet if exists
+        //    var wallet = await _context.Wallets
+        //        .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+        //    if (wallet != null)
+        //        _context.Wallets.Remove(wallet);
+
+        //    // Save all deletions before deleting the user
+        //    await _context.SaveChangesAsync();
+
+        //    // Now delete the Identity user
+        //    var result = await _userManager.DeleteAsync(user);
+        //    return result.Succeeded;
+        //}
+
         public async Task<bool> DeleteUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
-
-            // Delete related records first to avoid foreign key conflicts
 
             // Delete Availability records
             var availability = _context.Availability
@@ -138,6 +174,21 @@ namespace ScholaAi.Repositories.Admin
                 .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
             if (wallet != null)
                 _context.Wallets.Remove(wallet);
+
+            // Delete Notifications
+            var notifications = _context.Notifications
+                .Where(n => n.SenderId == userId || n.ReceiverId == userId);
+            _context.Notifications.RemoveRange(notifications);
+
+            // Delete Chat messages
+            var messages = _context.ChatMessages
+                .Where(m => m.SenderId == userId || m.ReceiverId == userId);
+            _context.ChatMessages.RemoveRange(messages);
+
+            // Delete Admin logs where this user is the target
+            var logs = _context.AdminLogs
+                .Where(l => l.TargetUserId == userId);
+            _context.AdminLogs.RemoveRange(logs);
 
             // Save all deletions before deleting the user
             await _context.SaveChangesAsync();

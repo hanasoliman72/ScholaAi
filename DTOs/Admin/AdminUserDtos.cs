@@ -88,4 +88,8 @@ namespace ScholaAi.DTOs.Admin
         [Required] public int DurationInDays { get; set; }
         public string? Reason { get; set; }
     }
+    public class VerifyTeacherDto
+    {
+        public string? Notes { get; set; }
+    }
 }
