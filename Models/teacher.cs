@@ -30,6 +30,7 @@ namespace ScholaAi.Models
 
         public int SubjectId { get; set; }
         public Subject Subject { get; set; }
+        public string IdNumber { get; set; }
 
         public ApplicationUser? ApplicationUser { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ScholaAi.Models
@@ -21,6 +21,8 @@ namespace ScholaAi.Models
 
         public int? SessionId { get; set; }
 
+        public int? RequestId { get; set; }
+
         public string Message { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -37,5 +39,8 @@ namespace ScholaAi.Models
 
         [ForeignKey(nameof(SessionId))]
         public Session? SessionNotification { get; set; }
+
+        [ForeignKey(nameof(RequestId))]
+        public SessionRequest? SessionRequestReference { get; set; }
     }
 }

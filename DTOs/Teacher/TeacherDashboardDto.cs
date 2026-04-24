@@ -9,6 +9,7 @@
 
         public decimal AvgRating { get; set; }
 
+
         public List<TeacherUpcomingSessionDto> UpcomingSessions { get; set; } = new();
         public List<TeacherRecentSessionDto> RecentSessions { get; set; } = new();
 
@@ -33,6 +34,7 @@
         public string SubjectName { get; set; }
 
         public int? StudentFocusScore { get; set; }
+
     }
 
     public class TeacherEarningsSummaryDto
