@@ -68,7 +68,58 @@ namespace ScholaAi.Controllers
             return Ok("You Registered Successfully");
 
         }
-     
+
+        //    [HttpPost("login")]
+        //    public async Task<IActionResult> Login([FromBody] loginDto userDto)
+        //    {
+        //        if (!ModelState.IsValid)
+        //            return BadRequest(ModelState);
+
+        //        var identityUser = await _userManager.FindByEmailAsync(userDto.email);
+        //        if (identityUser == null)
+        //            return Unauthorized("Invalid email or password");
+
+        //        var isPasswordValid = await _userManager.CheckPasswordAsync(identityUser, userDto.password);
+        //        if (!isPasswordValid)
+        //            return Unauthorized("Invalid email or password");
+
+        //        // 🔑 Claims
+        //        var claims = new List<Claim>
+        //{
+        //    new Claim(ClaimTypes.NameIdentifier, identityUser.Id), // ✅ CORRECT
+        //    new Claim(ClaimTypes.Email, identityUser.Email ?? string.Empty),
+        //    new Claim("UserType", identityUser.UserType.ToString())
+        //};
+
+        //        // ✅ Roles
+        //        var roles = await _userManager.GetRolesAsync(identityUser);
+        //        foreach (var role in roles)
+        //        {
+        //            claims.Add(new Claim(ClaimTypes.Role, role));
+        //        }
+
+        //        // 🔐 JWT
+        //        var secretKey = _configuration["JWT:Secretkey"];
+        //        var issuer = _configuration["JWT:ValidIssuer"];
+        //        var audience = _configuration["JWT:ValidAudience"];
+
+        //        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        //        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        //        var token = new JwtSecurityToken(
+        //            issuer: issuer,
+        //            audience: audience,
+        //            claims: claims,
+        //            expires: DateTime.UtcNow.AddDays(365),
+        //            signingCredentials: credentials
+        //        );
+
+        //        return Ok(new
+        //        {
+        //            token = new JwtSecurityTokenHandler().WriteToken(token)
+        //        });
+        //    }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] loginDto userDto)
         {
@@ -83,13 +134,32 @@ namespace ScholaAi.Controllers
             if (!isPasswordValid)
                 return Unauthorized("Invalid email or password");
 
+            // ✅ Suspension check
+            if (identityUser.IsSuspended)
+            {
+                if (identityUser.SuspendedUntil.HasValue && identityUser.SuspendedUntil.Value > DateTime.UtcNow)
+                {
+                    return Unauthorized(new
+                    {
+                        message = $"Your account is suspended until {identityUser.SuspendedUntil.Value:yyyy-MM-dd}"
+                    });
+                }
+                else
+                {
+                    // Suspension expired, auto-unsuspend
+                    identityUser.IsSuspended = false;
+                    identityUser.SuspendedUntil = null;
+                    await _userManager.UpdateAsync(identityUser);
+                }
+            }
+
             // 🔑 Claims
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, identityUser.Id), // ✅ CORRECT
-        new Claim(ClaimTypes.Email, identityUser.Email ?? string.Empty),
-        new Claim("UserType", identityUser.UserType.ToString())
-    };
+            {
+                 new Claim(ClaimTypes.NameIdentifier, identityUser.Id),
+                new Claim(ClaimTypes.Email, identityUser.Email ?? string.Empty),
+                 new Claim("UserType", identityUser.UserType.ToString())
+             };
 
             // ✅ Roles
             var roles = await _userManager.GetRolesAsync(identityUser);
