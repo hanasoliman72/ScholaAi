@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ScholaAi.DTOs.Sessions;
 using ScholaAi.Services.Base;
 using System.Security.Claims;
 
@@ -11,10 +12,12 @@ namespace ScholaAi.Controllers
     public class teacherSessionsController : ControllerBase
     {
         private readonly ISessionRequestService _sessionService;
+        private readonly ISessionStreamService _sessionStreamService;
 
-        public teacherSessionsController(ISessionRequestService sessionService)
+        public teacherSessionsController(ISessionRequestService sessionService, ISessionStreamService sessionStream)
         {
             _sessionService = sessionService;
+            _sessionStreamService = sessionStream;
         }
 
         [HttpGet("GetMyRequests")]
@@ -60,6 +63,73 @@ namespace ScholaAi.Controllers
             {
                 await _sessionService.RejectRequest(teacherId, sessionId);
                 return Ok(new { message = "Request rejected successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET: api/teacherSessions/{sessionId}
+        [HttpGet("{sessionId}")]
+        public async Task<IActionResult> GetSession(int sessionId)
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+            try
+            {
+                var session = await _sessionStreamService.GetSessionById(sessionId);
+                if (session.TeacherId != teacherId)
+                    return Forbid();
+                return Ok(new SessionDetailsDto
+                {
+                    SessionId = session.SessionId,
+                    TeacherId = session.TeacherId,
+                    StudentId = session.StudentId,
+                    Status = session.Status,
+                    RoomId = session.RoomId,
+                    StartedAt = session.StartedAt,
+                    EndedAt = session.EndedAt,
+                    TeacherName = $"{session.Teacher.ApplicationUser.FirstName} {session.Teacher.ApplicationUser.LastName}",
+                    StudentName = $"{session.Student.ApplicationUser.FirstName} {session.Student.ApplicationUser.LastName}",
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/teacherSessions/{sessionId}/start
+        [HttpPost("{sessionId}/start")]
+        public async Task<IActionResult> Start(int sessionId)
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+            try
+            {
+                var result = await _sessionStreamService.StartSession(teacherId, sessionId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/teacherSessions/{sessionId}/end
+        [HttpPost("{sessionId}/end")]
+        public async Task<IActionResult> End(int sessionId)
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+            try
+            {
+                await _sessionStreamService.EndSession(teacherId, sessionId);
+                return Ok(new { message = "Session ended successfully" });
             }
             catch (Exception ex)
             {
