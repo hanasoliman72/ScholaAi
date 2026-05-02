@@ -48,6 +48,8 @@ namespace ScholaAi.DTOs.Teacher
        
         public string TeachingExperience { get; set; }
 
+        public string IdNumber { get; set; }
+
         public int SubjectId { get; set; }
 
         // ===== Availability =====

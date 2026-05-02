@@ -89,6 +89,7 @@ namespace ScholaAi.Services.User
                 Gender = dto.Gender,
                 ProfilePhotoURL = dto.ProfilePhotoURL,
                 UserType = UserType.Teacher
+
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -104,8 +105,9 @@ namespace ScholaAi.Services.User
                 College = dto.College,
                 Certificate = dto.Certificate,
                 TeachingExperience = dto.TeachingExperience,
-                SubjectId = dto.SubjectId
-            });
+                SubjectId = dto.SubjectId,
+                 IdNumber = dto.IdNumber
+    });
 
             // إضافة availability لو موجودة
             if (dto.Availability != null && dto.Availability.Any())

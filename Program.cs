@@ -1,22 +1,21 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using ScholaAi.Data.Seeders;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
+using ScholaAi.Repositories.Admin;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.Rating;
+using ScholaAi.Repositories.sessions;
 using ScholaAi.Repositories.Student;
 using ScholaAi.Repositories.Teacher;
-using ScholaAi.Repositories.sessions;
 using ScholaAi.Repositories.User;
 using ScholaAi.Services;
+using ScholaAi.Services.Admin;
 using ScholaAi.Services.Base;
 using ScholaAi.Services.Rating;
-using ScholaAi.Services.Teacher;
-using ScholaAi.Services.User;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using ScholaAi.Data.Seeders;
 using ScholaAi.Services.sessions;
 using ScholaAi.Hubs;
 using ScholaAi.Repositories.Notification;
@@ -25,6 +24,10 @@ using Microsoft.AspNetCore.SignalR;
 using ScholaAi.SignalR;
 using ScholaAi.Services.Student;
 using ScholaAi.Services.teacher;
+using ScholaAi.Services.Teacher;
+using ScholaAi.Services.User;
+using System.Text;
+
 
 namespace ScholaAi
 {
@@ -65,6 +68,8 @@ namespace ScholaAi
             builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
             builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
+            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
 
 
             // Repositories
