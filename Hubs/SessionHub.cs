@@ -51,5 +51,21 @@ namespace ScholaAi.Hubs
 
             await base.OnDisconnectedAsync(ex);
         }
+
+        public async Task StudentDistracted(string roomId, string reason)
+        {
+            var room = _rooms.GetRoom(roomId);
+            if (room == null) return;
+
+            foreach (var connId in room.ConnectionIds)
+            {
+                var user = _rooms.GetUser(connId);
+                if (user?.Role == "host")
+                {
+                    await Clients.Client(connId).SendAsync("DistractionAlert", reason);
+                }
+            }
+            _logger.LogInformation("Distraction in room {Room}: {Reason}", roomId, reason);
+        }
     }
 }

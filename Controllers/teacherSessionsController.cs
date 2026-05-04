@@ -82,18 +82,7 @@ namespace ScholaAi.Controllers
                 var session = await _sessionStreamService.GetSessionById(sessionId);
                 if (session.TeacherId != teacherId)
                     return Forbid();
-                return Ok(new SessionDetailsDto
-                {
-                    SessionId = session.SessionId,
-                    TeacherId = session.TeacherId,
-                    StudentId = session.StudentId,
-                    Status = session.Status,
-                    RoomId = session.RoomId,
-                    StartedAt = session.StartedAt,
-                    EndedAt = session.EndedAt,
-                    TeacherName = $"{session.Teacher.ApplicationUser.FirstName} {session.Teacher.ApplicationUser.LastName}",
-                    StudentName = $"{session.Student.ApplicationUser.FirstName} {session.Student.ApplicationUser.LastName}",
-                });
+                return Ok(session);
             }
             catch (Exception ex)
             {
@@ -101,16 +90,16 @@ namespace ScholaAi.Controllers
             }
         }
 
-        // POST: api/teacherSessions/{sessionId}/start
-        [HttpPost("{sessionId}/start")]
-        public async Task<IActionResult> Start(int sessionId)
+        // POST: api/teacherSessions/{requestId}/start
+        [HttpPost("{requestId}/start")]
+        public async Task<IActionResult> Start(int requestId)
         {
             var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(teacherId))
                 return Unauthorized(new { message = "Invalid token" });
             try
             {
-                var result = await _sessionStreamService.StartSession(teacherId, sessionId);
+                var result = await _sessionStreamService.StartSession(teacherId, requestId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -121,14 +110,14 @@ namespace ScholaAi.Controllers
 
         // POST: api/teacherSessions/{sessionId}/end
         [HttpPost("{sessionId}/end")]
-        public async Task<IActionResult> End(int sessionId)
+        public async Task<IActionResult> End(int sessionId, [FromBody] EndSessionRequest req)
         {
             var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(teacherId))
                 return Unauthorized(new { message = "Invalid token" });
             try
             {
-                await _sessionStreamService.EndSession(teacherId, sessionId);
+                await _sessionStreamService.EndSession(teacherId, sessionId, req.FocusScore);
                 return Ok(new { message = "Session ended successfully" });
             }
             catch (Exception ex)
@@ -136,5 +125,10 @@ namespace ScholaAi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+    }
+
+    public class EndSessionRequest
+    {
+        public int FocusScore { get; set; }
     }
 }

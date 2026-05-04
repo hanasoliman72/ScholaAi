@@ -58,5 +58,21 @@ namespace ScholaAi.Services.sessions
                 return user.RoomId;
             }
         }
+
+        public RoomState? GetRoom(string roomId)
+        {
+            lock (_lock)
+            {
+                return _rooms.TryGetValue(roomId, out var room) ? room : null;
+            }
+        }
+
+        public UserState? GetUser(string connectionId)
+        {
+            lock (_lock)
+            {
+                return _users.TryGetValue(connectionId, out var user) ? user : null;
+            }
+        }
     }
 }
