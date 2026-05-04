@@ -301,7 +301,7 @@ namespace ScholaAi.Repositories.Admin
                 ScheduledAt = s.SessionRequest?.FinalScheduledAt,
                 FocusScore = s.FocusScore,
                 Summary = s.Summary,
-                RecordedSessionSeconds = s.RecordedSession,
+                RecordedSessionSeconds = s.RecordingDuration,
                 TransactionAmount = s.Transaction?.Amount,
                 IsLive = s.SessionRequest?.FinalScheduledAt.HasValue == true
                                       && s.SessionRequest.FinalScheduledAt.Value <= now

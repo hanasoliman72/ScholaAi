@@ -13,11 +13,14 @@ namespace ScholaAi.Controllers
     {
         private readonly ISessionRequestService _sessionService;
         private readonly ISessionStreamService _sessionStreamService;
+        private readonly IFileUploadService _fileService;
 
-        public teacherSessionsController(ISessionRequestService sessionService, ISessionStreamService sessionStream)
+        public teacherSessionsController(ISessionRequestService sessionService, 
+            ISessionStreamService sessionStream, IFileUploadService fileService)
         {
             _sessionService = sessionService;
             _sessionStreamService = sessionStream;
+            _fileService = fileService;
         }
 
         [HttpGet("GetMyRequests")]
@@ -119,6 +122,34 @@ namespace ScholaAi.Controllers
             {
                 await _sessionStreamService.EndSession(teacherId, sessionId, req.FocusScore);
                 return Ok(new { message = "Session ended successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // POST: api/teacherSessions/{sessionId}/upload-recording
+        [HttpPost("{sessionId}/upload-recording")]
+        public async Task<IActionResult> UploadRecording(int sessionId, IFormFile file, [FromForm] int duration)
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded" });
+
+            try
+            {
+                // reuse your existing file upload service
+                var fileUrl = await _fileService.UploadFileAsync(file, "recordings");
+                if (fileUrl == null)
+                    return BadRequest(new { message = "Upload failed" });
+
+                await _sessionStreamService.SaveRecording(teacherId, sessionId, fileUrl, duration);
+
+                return Ok(new { url = fileUrl });
             }
             catch (Exception ex)
             {

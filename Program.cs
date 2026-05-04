@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ScholaAi.Data.Seeders;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
 using ScholaAi.Repositories.Admin;

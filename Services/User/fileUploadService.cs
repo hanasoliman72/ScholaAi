@@ -7,10 +7,12 @@ namespace ScholaAi.Services.User
     public class fileUploadService : IFileUploadService
     {
         private readonly IWebHostEnvironment _env;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public fileUploadService(IWebHostEnvironment env)
+        public fileUploadService(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
         {
             _env = env ?? throw new ArgumentNullException(nameof(env));
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<string?> UploadFileAsync(IFormFile file, string folder)
@@ -34,7 +36,9 @@ namespace ScholaAi.Services.User
                 await file.CopyToAsync(stream);
             }
 
-            return $"/{folder}/{fileName}";
+            var request = _httpContextAccessor.HttpContext!.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            return $"{baseUrl}/{folder}/{fileName}";
         }
     }
 

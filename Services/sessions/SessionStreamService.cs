@@ -62,7 +62,7 @@ namespace ScholaAi.Services.sessions
                 RequestId = requestId,
                 TeacherId = teacherId,
                 StudentId = request.StudentId,
-                RecordedSession = 0,
+                RecordedSession = string.Empty,
                 Summary = string.Empty,
                 FocusScore = 0,
             };
@@ -122,6 +122,20 @@ namespace ScholaAi.Services.sessions
             session.Status = "ended";
             session.EndedAt = DateTime.UtcNow;
             session.FocusScore = focusScore;
+
+            await _sessionRepo.SaveAsync();
+        }
+
+        public async Task SaveRecording(string teacherId, int sessionId, string recordingUrl, int duration)
+        {
+            var session = await _sessionRepo.GetByIdAsync(sessionId)
+                ?? throw new Exception("Session not found");
+
+            if (session.TeacherId != teacherId)
+                throw new Exception("Not authorized");
+
+            session.RecordedSession = recordingUrl;
+            session.RecordingDuration = duration;
 
             await _sessionRepo.SaveAsync();
         }
