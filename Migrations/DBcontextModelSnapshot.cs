@@ -520,7 +520,6 @@ namespace ScholaAi.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Summary")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TeacherId")

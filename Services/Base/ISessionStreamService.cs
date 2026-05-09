@@ -10,5 +10,6 @@ namespace ScholaAi.Services.Base
         Task<StartSessionResponseDto> JoinSession(string studentId, int sessionId);
         Task EndSession(string teacherId, int sessionId, int focusScore = 0);
         Task SaveRecording(string teacherId, int sessionId, string recordingUrl, int duration);
+        Task GenerateSummaryAsync(int sessionId, string videoUrl);
     }
 }

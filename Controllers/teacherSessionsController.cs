@@ -131,6 +131,8 @@ namespace ScholaAi.Controllers
 
         // POST: api/teacherSessions/{sessionId}/upload-recording
         [HttpPost("{sessionId}/upload-recording")]
+        [RequestSizeLimit(2_000_000_000)] // 2GB
+        [RequestFormLimits(MultipartBodyLengthLimit = 2_000_000_000)] // 2GB
         public async Task<IActionResult> UploadRecording(int sessionId, IFormFile file, [FromForm] int duration)
         {
             var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -142,8 +144,7 @@ namespace ScholaAi.Controllers
 
             try
             {
-                // reuse your existing file upload service
-                var fileUrl = await _fileService.UploadFileAsync(file, "recordings");
+                var fileUrl = await _fileService.UploadToSupabaseAsync(file, "recordings");
                 if (fileUrl == null)
                     return BadRequest(new { message = "Upload failed" });
 

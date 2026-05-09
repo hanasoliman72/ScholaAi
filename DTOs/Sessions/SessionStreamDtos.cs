@@ -11,6 +11,10 @@
         public DateTime? EndedAt { get; set; }
         public string TeacherName { get; set; }
         public string StudentName { get; set; }
+        public string? RecordedSession { get; set; }  
+        public string? Summary { get; set; }           
+        public int? FocusScore { get; set; }           
+        public int RecordingDuration { get; set; }    
     }
 
     public class StartSessionResponseDto

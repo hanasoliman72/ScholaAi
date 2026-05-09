@@ -14,7 +14,7 @@ namespace ScholaAi.Models
         public string StudentId { get; set; }
         public string? RecordedSession { get; set; }
         public int RecordingDuration { get; set; }
-        public string Summary { get; set; }
+        public string? Summary { get; set; }
         [Range(0, 100)]
         public int? FocusScore { get; set; }
 

@@ -58,7 +58,8 @@ namespace ScholaAi
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
             builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IFileUploadService, fileUploadService>();
+            //builder.Services.AddScoped<IFileUploadService, fileUploadService>();
+            builder.Services.AddHttpClient<IFileUploadService, fileUploadService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ISessionRequestService, sessionRequestService>();
             builder.Services.AddScoped<IRatingService, ratingService>();
@@ -66,7 +67,8 @@ namespace ScholaAi
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
-            builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
+            //builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
+            builder.Services.AddHttpClient<ISessionStreamService, SessionStreamService>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IAdminService, AdminService>();
 
@@ -132,7 +134,11 @@ namespace ScholaAi
                             .AllowCredentials();
                     });
             });
-            
+
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.MaxRequestBodySize = 2_000_000_000; // 2GB
+            });
 
             var app = builder.Build();
 
