@@ -11,6 +11,7 @@ using ScholaAi.Repositories.Admin;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.Calendar;
 using ScholaAi.Repositories.Notification;
+using ScholaAi.Repositories.Payments;
 using ScholaAi.Repositories.Rating;
 using ScholaAi.Repositories.sessions;
 using ScholaAi.Repositories.Student;
@@ -21,6 +22,7 @@ using ScholaAi.Services.Admin;
 using ScholaAi.Services.Base;
 using ScholaAi.Services.Calendar;
 using ScholaAi.Services.Notifications;
+using ScholaAi.Services.payments;
 using ScholaAi.Services.Rating;
 using ScholaAi.Services.sessions;
 using ScholaAi.Services.Student;
@@ -28,6 +30,7 @@ using ScholaAi.Services.teacher;
 using ScholaAi.Services.Teacher;
 using ScholaAi.Services.User;
 using ScholaAi.SignalR;
+using Stripe;
 using System.Text;
 
 
@@ -74,9 +77,14 @@ namespace ScholaAi
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IAdminService, AdminService>();
 
+
             // Calendar
             builder.Services.AddScoped<ICalendarRepository, CalendarRepository>();
             builder.Services.AddScoped<ICalendarService, CalendarService>();
+          
+            builder.Services.AddScoped<IWalletService, WalletService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 
 
             // Repositories
@@ -91,7 +99,8 @@ namespace ScholaAi
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
             builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
-
+            builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+            //builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 
             //JWT
             builder.Services.AddAuthentication(options =>
@@ -115,6 +124,11 @@ namespace ScholaAi
                     )
                 };
             });
+            // Payment Getway
+            //StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+          builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();
@@ -142,6 +156,13 @@ namespace ScholaAi
             
 
             var app = builder.Build();
+
+            // payment
+            app.Use(async (context, next) => {
+                if (context.Request.Path.StartsWithSegments("/api/payment/webhook"))
+                    context.Request.EnableBuffering();
+                await next();
+            });
 
             using (var scope = app.Services.CreateScope())
             {
