@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ScholaAi.Data.Seeders;
+using ScholaAi.Hubs;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
 using ScholaAi.Repositories.Admin;
 using ScholaAi.Repositories.Base;
+using ScholaAi.Repositories.Notification;
 using ScholaAi.Repositories.Rating;
 using ScholaAi.Repositories.sessions;
 using ScholaAi.Repositories.Student;
@@ -15,17 +18,14 @@ using ScholaAi.Repositories.User;
 using ScholaAi.Services;
 using ScholaAi.Services.Admin;
 using ScholaAi.Services.Base;
+using ScholaAi.Services.Notifications;
 using ScholaAi.Services.Rating;
 using ScholaAi.Services.sessions;
-using ScholaAi.Hubs;
-using ScholaAi.Repositories.Notification;
-using ScholaAi.Services.Notifications;
-using Microsoft.AspNetCore.SignalR;
-using ScholaAi.SignalR;
 using ScholaAi.Services.Student;
 using ScholaAi.Services.teacher;
 using ScholaAi.Services.Teacher;
 using ScholaAi.Services.User;
+using ScholaAi.SignalR;
 using System.Text;
 
 
@@ -71,6 +71,9 @@ namespace ScholaAi
             // Admin
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IAdminService, AdminService>();
+
+           
+
 
 
             // Repositories
