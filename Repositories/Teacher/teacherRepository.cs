@@ -52,5 +52,65 @@ namespace ScholaAi.Repositories.Teacher
 
             return await query.ToListAsync();
         }
+
+        //public async Task<List<Models.Session>> GetTeacherSessionsWithStudentsAsync(string teacherId)
+        //{
+        //    return await _context.Sessions
+        //        .Include(s => s.SessionRequest)
+        //            .ThenInclude(r => r.Subject)
+        //        .Include(s => s.Student)
+        //            .ThenInclude(st => st.ApplicationUser)
+        //        .Where(s =>
+        //            s.TeacherId == teacherId &&
+        //            s.SessionRequest.FinalScheduledAt.HasValue)
+        //        .ToListAsync();
+        //}
+
+        public async Task<List<Models.Session>> GetTeacherSessionsWithStudentsAsync(string teacherId)
+        {
+            return await _context.Sessions
+                .Include(s => s.SessionRequest)
+                    .ThenInclude(r => r.Subject)
+                .Include(s => s.SessionRequest)
+                    .ThenInclude(r => r.Student)
+                        .ThenInclude(st => st.ApplicationUser)
+                .Include(s => s.Student)
+                    .ThenInclude(st => st.ApplicationUser)
+                .Where(s =>
+                    s.TeacherId == teacherId &&
+                    s.SessionRequest.FinalScheduledAt.HasValue)
+                .ToListAsync();
+        }
+
+        public async Task<List<Models.Session>> GetStudentSessionsWithTeacherAsync(string teacherId, string studentId)
+        {
+            return await _context.Sessions
+                .Include(s => s.SessionRequest)
+                    .ThenInclude(r => r.Subject)
+                .Include(s => s.Student)
+                    .ThenInclude(st => st.ApplicationUser)
+                .Where(s =>
+                    s.TeacherId == teacherId &&
+                    s.StudentId == studentId &&
+                    s.SessionRequest.FinalScheduledAt.HasValue)
+                .OrderBy(s => s.SessionRequest.FinalScheduledAt)
+                .ToListAsync();
+        }
+
+        //public async Task<List<Models.Session>> GetStudentSessionsWithTeacherAsync(
+        //    string teacherId, string studentId)
+        //{
+        //    return await _context.Sessions
+        //        .Include(s => s.SessionRequest)
+        //            .ThenInclude(r => r.Subject)
+        //        .Include(s => s.Student)
+        //            .ThenInclude(st => st.ApplicationUser)
+        //        .Where(s =>
+        //            s.TeacherId == teacherId &&
+        //            s.StudentId == studentId &&
+        //            s.SessionRequest.FinalScheduledAt.HasValue)
+        //        .OrderBy(s => s.SessionRequest.FinalScheduledAt)
+        //        .ToListAsync();
+        //}
     }
 }
