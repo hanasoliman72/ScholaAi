@@ -125,5 +125,65 @@ namespace ScholaAi.Controllers
 
             return Ok(new { message });
         }
+
+        // ===============================
+        // GET My Students List
+        // GET api/teacherProfile/myStudents?search=
+        // ===============================
+        [HttpGet("myStudents")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> GetMyStudents([FromQuery] string? search)
+        {
+            try
+            {
+                var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(teacherId))
+                    return Unauthorized(new { message = "Invalid token" });
+
+                var result = await _teacherProfileService
+                    .GetMyStudentsAsync(teacherId, search);
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while fetching students"
+                });
+            }
+        }
+
+        // ===============================
+        // GET Student Progress
+        // GET api/teacherProfile/myStudents/{studentId}/progress
+        // ===============================
+        [HttpGet("myStudents/{studentId}/progress")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> GetStudentProgress(string studentId)
+        {
+            try
+            {
+                var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(teacherId))
+                    return Unauthorized(new { message = "Invalid token" });
+
+                var result = await _teacherProfileService
+                    .GetStudentProgressAsync(teacherId, studentId);
+
+                return result == null
+                    ? NotFound(new { message = "Student not found or no sessions together" })
+                    : Ok(new { success = true, data = result });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while fetching student progress"
+                });
+            }
+        }
     }
 }

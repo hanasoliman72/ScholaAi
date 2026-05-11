@@ -1,11 +1,10 @@
 ﻿using ScholaAi.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ScholaAi.Repositories.Base
 {
     public interface ITeacherRepository : IGenericRepository<Models.Teacher>
     {
+        // Existing methods
         // ✅ تجيب Teacher ومعاه بيانات ApplicationUser
         Task<Models.Teacher?> getByIdWithUserAsync(string teacherId);
 
@@ -14,5 +13,10 @@ namespace ScholaAi.Repositories.Base
             string? name,
             string? subject,
             string? keyword);
+
+        // ✅ NEW - My Students
+        Task<List<Models.Session>> GetTeacherSessionsWithStudentsAsync(string teacherId);
+        Task<List<Models.Session>> GetStudentSessionsWithTeacherAsync(
+            string teacherId, string studentId);
     }
 }
