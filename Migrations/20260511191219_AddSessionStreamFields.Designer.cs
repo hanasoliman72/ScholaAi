@@ -12,8 +12,8 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20260502171659_init")]
-    partial class init
+    [Migration("20260511191219_AddSessionStreamFields")]
+    partial class AddSessionStreamFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -498,8 +498,11 @@ namespace ScholaAi.Migrations
                     b.Property<int?>("FocusScore")
                         .HasColumnType("int");
 
-                    b.Property<long>("RecordedSession")
-                        .HasColumnType("bigint");
+                    b.Property<string>("RecordedSession")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecordingDuration")
+                        .HasColumnType("int");
 
                     b.Property<int>("RequestId")
                         .HasColumnType("int");
@@ -520,7 +523,6 @@ namespace ScholaAi.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Summary")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TeacherId")
