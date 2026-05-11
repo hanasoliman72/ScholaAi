@@ -224,8 +224,8 @@ namespace ScholaAi.Services.Teacher
                     .ToList();
 
                 var totalHours = sessions
-                    .Where(s => s.RecordedSession > 0)
-                    .Sum(s => s.RecordedSession) / 3600.0m;
+                    .Where(s => s.RecordingDuration > 0)
+                    .Sum(s => s.RecordingDuration) / 3600.0m;
 
                 double? avgFocus = completedSessions.Any()
                     ? completedSessions.Average(s => (double)s.FocusScore!.Value)
@@ -283,8 +283,8 @@ namespace ScholaAi.Services.Teacher
                 PreviousStudents = previousCards.Count,
                 TotalSessions = allSessions.Count,
                 TotalHoursTaught = allSessions
-                    .Where(s => s.RecordedSession > 0)
-                    .Sum(s => s.RecordedSession) / 3600.0m,
+                    .Where(s => s.RecordingDuration > 0)
+                    .Sum(s => s.RecordingDuration) / 3600.0m,
                 AverageRating = (decimal)Math.Round((double)avgRating, 1)
             };
 
@@ -327,8 +327,8 @@ namespace ScholaAi.Services.Teacher
                 .ToList();
 
             var totalHours = sessions
-                .Where(s => s.RecordedSession > 0)
-                .Sum(s => s.RecordedSession) / 3600.0m;
+                .Where(s => s.RecordingDuration > 0)
+                .Sum(s => s.RecordingDuration) / 3600.0m;
 
             double? avgFocus = completedSessions.Any()
                 ? completedSessions.Average(s => (double)s.FocusScore!.Value)
@@ -353,8 +353,8 @@ namespace ScholaAi.Services.Teacher
                 .Select(s =>
                 {
                     var scheduledAt = s.SessionRequest.FinalScheduledAt!.Value;
-                    var hours = s.RecordedSession > 0
-                                      ? s.RecordedSession / 3600.0
+                    var hours = s.RecordingDuration > 0
+                                      ? s.RecordingDuration / 3600.0
                                       : 1.0;
                     var status = s.FocusScore.HasValue ? "Completed" :
                                       s.SessionRequest.Status == Models.RequestStatus.Accepted &&
@@ -378,8 +378,8 @@ namespace ScholaAi.Services.Teacher
                 .Select(s =>
                 {
                     var scheduledAt = s.SessionRequest.FinalScheduledAt!.Value;
-                    var hours = s.RecordedSession > 0
-                                      ? s.RecordedSession / 3600.0
+                    var hours = s.RecordingDuration > 0
+                                      ? s.RecordingDuration / 3600.0
                                       : 1.0;
 
                     return new StudentUpcomingSessionDto

@@ -94,8 +94,8 @@ namespace ScholaAi.Repositories.Calendar
             {
                 var scheduledAt = s.SessionRequest.FinalScheduledAt!.Value;
                 var status = GetSessionStatus(s, now);
-                var hours = s.RecordedSession > 0
-                                  ? s.RecordedSession / 3600.0
+                var hours = s.RecordingDuration > 0
+                                  ? s.RecordingDuration / 3600.0
                                   : 1.0;
 
                 return new StudentCalendarSessionDto
@@ -227,8 +227,8 @@ namespace ScholaAi.Repositories.Calendar
             {
                 var scheduledAt = s.SessionRequest.FinalScheduledAt!.Value;
                 var status = GetSessionStatus(s, now);
-                var hours = s.RecordedSession > 0
-                                  ? s.RecordedSession / 3600.0
+                var hours = s.RecordingDuration > 0
+                                  ? s.RecordingDuration / 3600.0
                                   : 1.0;
 
                 return new TeacherCalendarSessionDto
@@ -274,8 +274,8 @@ namespace ScholaAi.Repositories.Calendar
 
             if (session == null) return null;
 
-            var hours = session.RecordedSession > 0
-                        ? session.RecordedSession / 3600.0
+            var hours = session.RecordingDuration > 0
+                        ? session.RecordingDuration / 3600.0
                         : 1.0;
 
             return new TeacherSessionAnalysisDto
@@ -287,7 +287,7 @@ namespace ScholaAi.Repositories.Calendar
                 ScheduledAt = session.SessionRequest?.FinalScheduledAt ?? DateTime.UtcNow,
                 FocusScore = session.FocusScore,
                 Summary = session.Summary,
-                RecordedSessionSeconds = session.RecordedSession,
+                RecordedSessionSeconds = session.RecordingDuration,
                 Duration = hours == 1.0 ? "1 hour" :
                                          hours < 1.0 ? $"{hours * 60:0} minutes" :
                                          $"{hours:0.#} hours"
