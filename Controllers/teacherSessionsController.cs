@@ -13,11 +13,14 @@ namespace ScholaAi.Controllers
     {
         private readonly ISessionRequestService _sessionService;
         private readonly ISessionStreamService _sessionStreamService;
+        private readonly IFileUploadService _fileService;
 
-        public teacherSessionsController(ISessionRequestService sessionService, ISessionStreamService sessionStream)
+        public teacherSessionsController(ISessionRequestService sessionService, 
+            ISessionStreamService sessionStream, IFileUploadService fileService)
         {
             _sessionService = sessionService;
             _sessionStreamService = sessionStream;
+            _fileService = fileService;
         }
 
         [HttpGet("GetMyRequests")]
@@ -82,18 +85,7 @@ namespace ScholaAi.Controllers
                 var session = await _sessionStreamService.GetSessionById(sessionId);
                 if (session.TeacherId != teacherId)
                     return Forbid();
-                return Ok(new SessionDetailsDto
-                {
-                    SessionId = session.SessionId,
-                    TeacherId = session.TeacherId,
-                    StudentId = session.StudentId,
-                    Status = session.Status,
-                    RoomId = session.RoomId,
-                    StartedAt = session.StartedAt,
-                    EndedAt = session.EndedAt,
-                    TeacherName = $"{session.Teacher.ApplicationUser.FirstName} {session.Teacher.ApplicationUser.LastName}",
-                    StudentName = $"{session.Student.ApplicationUser.FirstName} {session.Student.ApplicationUser.LastName}",
-                });
+                return Ok(session);
             }
             catch (Exception ex)
             {
@@ -101,16 +93,16 @@ namespace ScholaAi.Controllers
             }
         }
 
-        // POST: api/teacherSessions/{sessionId}/start
-        [HttpPost("{sessionId}/start")]
-        public async Task<IActionResult> Start(int sessionId)
+        // POST: api/teacherSessions/{requestId}/start
+        [HttpPost("{requestId}/start")]
+        public async Task<IActionResult> Start(int requestId)
         {
             var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(teacherId))
                 return Unauthorized(new { message = "Invalid token" });
             try
             {
-                var result = await _sessionStreamService.StartSession(teacherId, sessionId);
+                var result = await _sessionStreamService.StartSession(teacherId, requestId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -121,14 +113,14 @@ namespace ScholaAi.Controllers
 
         // POST: api/teacherSessions/{sessionId}/end
         [HttpPost("{sessionId}/end")]
-        public async Task<IActionResult> End(int sessionId)
+        public async Task<IActionResult> End(int sessionId, [FromBody] EndSessionRequest req)
         {
             var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(teacherId))
                 return Unauthorized(new { message = "Invalid token" });
             try
             {
-                await _sessionStreamService.EndSession(teacherId, sessionId);
+                await _sessionStreamService.EndSession(teacherId, sessionId, req.FocusScore);
                 return Ok(new { message = "Session ended successfully" });
             }
             catch (Exception ex)
@@ -136,5 +128,39 @@ namespace ScholaAi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // POST: api/teacherSessions/{sessionId}/upload-recording
+        [HttpPost("{sessionId}/upload-recording")]
+        [RequestSizeLimit(2_000_000_000)] // 2GB
+        [RequestFormLimits(MultipartBodyLengthLimit = 2_000_000_000)] // 2GB
+        public async Task<IActionResult> UploadRecording(int sessionId, IFormFile file, [FromForm] int duration)
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded" });
+
+            try
+            {
+                var fileUrl = await _fileService.UploadToSupabaseAsync(file, "recordings");
+                if (fileUrl == null)
+                    return BadRequest(new { message = "Upload failed" });
+
+                await _sessionStreamService.SaveRecording(teacherId, sessionId, fileUrl, duration);
+
+                return Ok(new { url = fileUrl });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+    }
+
+    public class EndSessionRequest
+    {
+        public int FocusScore { get; set; }
     }
 }

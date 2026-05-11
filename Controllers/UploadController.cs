@@ -41,7 +41,6 @@ namespace ScholaAi.Controllers
             if (fileUrl == null)
                 return BadRequest("Upload failed.");
 
-            // FIX: Changed "sub" to ClaimTypes.NameIdentifier because that is what your Identity system uses in the token.
             var senderId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(senderId))
                 return Unauthorized();

@@ -17,7 +17,7 @@ namespace ScholaAi.DTOs.Admin
         public string TeacherId { get; set; }
         public string StudentId { get; set; }
         public string Summary { get; set; }
-        public long RecordedSessionSeconds { get; set; }
+        public int RecordedSessionSeconds { get; set; }
         public decimal? TransactionAmount { get; set; }
     }
 }

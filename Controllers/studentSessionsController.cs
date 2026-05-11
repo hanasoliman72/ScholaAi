@@ -74,16 +74,7 @@ namespace ScholaAi.Controllers
                 var session = await _sessionStreamService.GetSessionById(sessionId);
                 if (session.StudentId != studentId)
                     return Forbid();
-                return Ok(new SessionDetailsDto
-                {
-                    SessionId = session.SessionId,
-                    TeacherId = session.TeacherId,
-                    StudentId = session.StudentId,
-                    Status = session.Status,
-                    RoomId = session.RoomId,
-                    StartedAt = session.StartedAt,
-                    EndedAt = session.EndedAt,
-                });
+                return Ok(session);
             }
             catch (Exception ex)
             {
@@ -91,16 +82,16 @@ namespace ScholaAi.Controllers
             }
         }
 
-        // POST: api/teacherSessions/{sessionId}/join
-        [HttpPost("{sessionId}/join")]
-        public async Task<IActionResult> Join(int sessionId)
+        // POST: api/studentSessions/{requestId}/join
+        [HttpPost("{requestId}/join")]
+        public async Task<IActionResult> Join(int requestId)
         {
             var studentId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(studentId))
                 return Unauthorized(new { message = "Invalid token" });
             try
             {
-                var result = await _sessionStreamService.JoinSession(studentId, sessionId);
+                var result = await _sessionStreamService.JoinSession(studentId, requestId);
                 return Ok(result);
             }
             catch (Exception ex)

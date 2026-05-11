@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ScholaAi.Data.Seeders;
 using ScholaAi.Hubs;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
@@ -62,7 +61,8 @@ namespace ScholaAi
             // Services
             builder.Services.AddScoped<IStudentProfileService, studentProfileService>();
             builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IFileUploadService, fileUploadService>();
+            //builder.Services.AddScoped<IFileUploadService, fileUploadService>();
+            builder.Services.AddHttpClient<IFileUploadService, fileUploadService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ISessionRequestService, sessionRequestService>();
             builder.Services.AddScoped<IRatingService, ratingService>();
@@ -70,7 +70,8 @@ namespace ScholaAi
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
             builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
-            builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
+            //builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
+            builder.Services.AddHttpClient<ISessionStreamService, SessionStreamService>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<ICalendarRepository, CalendarRepository>();
@@ -89,6 +90,7 @@ namespace ScholaAi
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
             builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
+            builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 
 
             //JWT
@@ -137,7 +139,11 @@ namespace ScholaAi
                             .AllowCredentials();
                     });
             });
-            
+
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.MaxRequestBodySize = 2_000_000_000; // 2GB
+            });
 
             var app = builder.Build();
 
