@@ -160,5 +160,283 @@ namespace ScholaAi.Services.Teacher
             return (true, "Teacher profile updated successfully");
         }
 
+        // ═══════════════════════════════════════════════════════
+        // MY STUDENTS
+        // ═══════════════════════════════════════════════════════
+        public async Task<MyStudentsListResponseDto> GetMyStudentsAsync(string teacherId, string? search)
+        {
+            var now = DateTime.UtcNow;
+            var twoWeeksAgo = now.AddDays(-14);
+
+            var allSessions = await _teacherRepository
+                .GetTeacherSessionsWithStudentsAsync(teacherId);
+
+            // Group by student
+            var studentGroups = allSessions
+                .GroupBy(s => s.StudentId)
+                .ToList();
+
+            var activeCards = new List<StudentCardDto>();
+            var previousCards = new List<StudentCardDto>();
+
+            foreach (var group in studentGroups)
+            {
+                var sessions = group.ToList();
+
+                // Try multiple ways to get student info
+                ApplicationUser? student = null;
+
+                // Try through Student navigation property
+                var firstSession = sessions.FirstOrDefault(s => s.Student?.ApplicationUser != null);
+                if (firstSession != null)
+                    student = firstSession.Student!.ApplicationUser;
+
+                // If still null try through SessionRequest
+                if (student == null)
+                {
+                    var sessionWithRequest = sessions.FirstOrDefault(s =>
+                        s.SessionRequest?.Student?.ApplicationUser != null);
+                    if (sessionWithRequest != null)
+                        student = sessionWithRequest.SessionRequest!.Student!.ApplicationUser;
+                }
+
+                // If still null skip this student
+                if (student == null) continue;
+
+                var subject = sessions
+                    .FirstOrDefault(s => s.SessionRequest?.Subject != null)
+                    ?.SessionRequest?.Subject?.name ?? "N/A";
+
+                var studentName = student.FirstName + " " + student.LastName;
+
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var searchLower = search.ToLower();
+                    if (!studentName.ToLower().Contains(searchLower) &&
+                        !subject.ToLower().Contains(searchLower))
+                        continue;
+                }
+
+                // Stats
+                var completedSessions = sessions
+                    .Where(s => s.FocusScore.HasValue)
+                    .ToList();
+
+                var totalHours = sessions
+                    .Where(s => s.RecordedSession > 0)
+                    .Sum(s => s.RecordedSession) / 3600.0m;
+
+                double? avgFocus = completedSessions.Any()
+                    ? completedSessions.Average(s => (double)s.FocusScore!.Value)
+                    : null;
+
+                var lastSession = completedSessions
+                    .OrderByDescending(s => s.SessionRequest.FinalScheduledAt)
+                    .FirstOrDefault();
+
+                var nextSession = sessions
+                    .Where(s =>
+                        s.SessionRequest.Status == Models.RequestStatus.Accepted &&
+                        s.SessionRequest.FinalScheduledAt.HasValue &&
+                        s.SessionRequest.FinalScheduledAt.Value > now &&
+                        !s.FocusScore.HasValue)
+                    .OrderBy(s => s.SessionRequest.FinalScheduledAt)
+                    .FirstOrDefault();
+
+                var lastSessionDate = lastSession?.SessionRequest?.FinalScheduledAt;
+                var hasUpcoming = nextSession != null;
+                var isActive = hasUpcoming ||
+                                      (lastSessionDate.HasValue &&
+                                       lastSessionDate.Value >= twoWeeksAgo);
+
+                var card = new StudentCardDto
+                {
+                    StudentId = group.Key,
+                    StudentName = studentName,
+                    ProfilePhotoURL = student.ProfilePhotoURL,
+                    SubjectName = subject,
+                    TotalSessions = sessions.Count,
+                    TotalHours = totalHours,
+                    AverageFocusScore = avgFocus,
+                    LastSessionDate = lastSessionDate,
+                    LastSessionAgo = GetTimeAgo(lastSessionDate),
+                    NextSessionDate = nextSession?.SessionRequest?.FinalScheduledAt,
+                    NextSessionTime = nextSession?.SessionRequest?.FinalScheduledAt.HasValue == true
+                                        ? nextSession.SessionRequest.FinalScheduledAt.Value
+                                          .ToString("h:mm tt")
+                                        : null,
+                    IsActive = isActive
+                };
+
+                if (isActive) activeCards.Add(card);
+                else previousCards.Add(card);
+            }
+
+            var ratings = await _teacherRepository.getByIdWithUserAsync(teacherId);
+            var avgRating = ratings?.TotalRates ?? 0;
+
+            var summary = new MyStudentsSummaryDto
+            {
+                TotalStudents = activeCards.Count + previousCards.Count,
+                ActiveStudents = activeCards.Count,
+                PreviousStudents = previousCards.Count,
+                TotalSessions = allSessions.Count,
+                TotalHoursTaught = allSessions
+                    .Where(s => s.RecordedSession > 0)
+                    .Sum(s => s.RecordedSession) / 3600.0m,
+                AverageRating = (decimal)Math.Round((double)avgRating, 1)
+            };
+
+            return new MyStudentsListResponseDto
+            {
+                Summary = summary,
+                ActiveStudents = activeCards
+                    .OrderByDescending(c => c.NextSessionDate ?? c.LastSessionDate)
+                    .ToList(),
+                PreviousStudents = previousCards
+                    .OrderByDescending(c => c.LastSessionDate)
+                    .ToList()
+            };
+        }
+
+        public async Task<StudentProgressDto?> GetStudentProgressAsync(
+            string teacherId, string studentId)
+        {
+            var now = DateTime.UtcNow;
+
+            var sessions = await _teacherRepository
+                .GetStudentSessionsWithTeacherAsync(teacherId, studentId);
+
+            if (!sessions.Any()) return null;
+
+            var student = sessions.First().Student?.ApplicationUser;
+            var subject = sessions.First().SessionRequest?.Subject?.name ?? "N/A";
+            if (student == null) return null;
+
+            var completedSessions = sessions
+                .Where(s => s.FocusScore.HasValue)
+                .ToList();
+
+            var upcomingSessions = sessions
+                .Where(s =>
+                    s.SessionRequest.Status == Models.RequestStatus.Accepted &&
+                    s.SessionRequest.FinalScheduledAt.HasValue &&
+                    s.SessionRequest.FinalScheduledAt.Value > now &&
+                    !s.FocusScore.HasValue)
+                .ToList();
+
+            var totalHours = sessions
+                .Where(s => s.RecordedSession > 0)
+                .Sum(s => s.RecordedSession) / 3600.0m;
+
+            double? avgFocus = completedSessions.Any()
+                ? completedSessions.Average(s => (double)s.FocusScore!.Value)
+                : null;
+
+            // Focus trend — last 5 completed sessions
+            var focusTrend = completedSessions
+                .OrderByDescending(s => s.SessionRequest.FinalScheduledAt)
+                .Take(5)
+                .OrderBy(s => s.SessionRequest.FinalScheduledAt)
+                .Select((s, index) => new SessionFocusTrendDto
+                {
+                    SessionNumber = index + 1,
+                    Date = s.SessionRequest.FinalScheduledAt!.Value,
+                    FocusScore = s.FocusScore!.Value
+                })
+                .ToList();
+
+            // Session history
+            var sessionHistory = sessions
+                .OrderByDescending(s => s.SessionRequest.FinalScheduledAt)
+                .Select(s =>
+                {
+                    var scheduledAt = s.SessionRequest.FinalScheduledAt!.Value;
+                    var hours = s.RecordedSession > 0
+                                      ? s.RecordedSession / 3600.0
+                                      : 1.0;
+                    var status = s.FocusScore.HasValue ? "Completed" :
+                                      s.SessionRequest.Status == Models.RequestStatus.Accepted &&
+                                      scheduledAt > now ? "Upcoming" : "Pending";
+
+                    return new StudentSessionHistoryDto
+                    {
+                        SessionId = s.SessionId,
+                        Date = scheduledAt,
+                        Time = scheduledAt.ToString("h:mm tt"),
+                        Duration = FormatDuration(hours),
+                        FocusScore = s.FocusScore,
+                        Status = status,
+                        Summary = s.Summary
+                    };
+                })
+                .ToList();
+
+            // Upcoming sessions
+            var upcomingDtos = upcomingSessions
+                .Select(s =>
+                {
+                    var scheduledAt = s.SessionRequest.FinalScheduledAt!.Value;
+                    var hours = s.RecordedSession > 0
+                                      ? s.RecordedSession / 3600.0
+                                      : 1.0;
+
+                    return new StudentUpcomingSessionDto
+                    {
+                        SessionId = s.SessionId,
+                        ScheduledAt = scheduledAt,
+                        Time = scheduledAt.ToString("h:mm tt"),
+                        Duration = FormatDuration(hours)
+                    };
+                })
+                .ToList();
+
+            return new StudentProgressDto
+            {
+                StudentId = studentId,
+                StudentName = student.FirstName + " " + student.LastName,
+                ProfilePhotoURL = student.ProfilePhotoURL,
+                SubjectName = subject,
+                TotalSessions = sessions.Count,
+                TotalHours = totalHours,
+                AverageFocusScore = avgFocus,
+                FirstSessionDate = sessions.First().SessionRequest?.FinalScheduledAt,
+                LastSessionDate = completedSessions.Any()
+                                    ? completedSessions
+                                      .OrderByDescending(s => s.SessionRequest.FinalScheduledAt)
+                                      .First().SessionRequest?.FinalScheduledAt
+                                    : null,
+                FocusTrend = focusTrend,
+                SessionHistory = sessionHistory,
+                UpcomingSessions = upcomingDtos
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // PRIVATE HELPERS
+        // ═══════════════════════════════════════════════════════
+        private static string GetTimeAgo(DateTime? date)
+        {
+            if (!date.HasValue) return "Never";
+
+            var diff = DateTime.UtcNow - date.Value;
+
+            if (diff.TotalDays < 1) return "Today";
+            if (diff.TotalDays < 2) return "Yesterday";
+            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
+            if (diff.TotalDays < 14) return "1 week ago";
+            if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} weeks ago";
+            if (diff.TotalDays < 60) return "1 month ago";
+            return $"{(int)(diff.TotalDays / 30)} months ago";
+        }
+
+        private static string FormatDuration(double hours)
+        {
+            if (hours == 1.0) return "1 hour";
+            if (hours < 1.0) return $"{hours * 60:0} minutes";
+            return $"{hours:0.#} hours";
+        }
+
     }
 }

@@ -73,8 +73,6 @@ namespace ScholaAi
             builder.Services.AddScoped<ISessionStreamService, SessionStreamService>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IAdminService, AdminService>();
-
-            // Calendar
             builder.Services.AddScoped<ICalendarRepository, CalendarRepository>();
             builder.Services.AddScoped<ICalendarService, CalendarService>();
 
