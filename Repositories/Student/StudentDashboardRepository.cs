@@ -14,12 +14,17 @@ namespace ScholaAi.Repositories.Student
                 .Include(s => s.ApplicationUser)
                     .ThenInclude(u => u.Wallet)
                         .ThenInclude(w => w.TransactionsFrom)
-                .Include(s => s.Sessions)
+                .Include(s => s.Sessions)                        
                     .ThenInclude(sess => sess.SessionRequest)
                         .ThenInclude(sr => sr.Subject)
                 .Include(s => s.Sessions)
                     .ThenInclude(sess => sess.Teacher)
                         .ThenInclude(t => t.ApplicationUser)
+                .Include(s => s.SessionRequests)                 
+                    .ThenInclude(sr => sr.Subject)               
+                .Include(s => s.SessionRequests)                
+                    .ThenInclude(sr => sr.Teacher)               
+                        .ThenInclude(t => t.ApplicationUser)     
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == studentId);
         }
     }

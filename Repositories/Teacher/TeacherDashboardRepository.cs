@@ -20,6 +20,11 @@ namespace ScholaAi.Repositories.Teacher
                 .Include(t => t.Sessions)
                     .ThenInclude(s => s.Student)
                         .ThenInclude(st => st.ApplicationUser)
+                .Include(t => t.SessionRequests)                   
+                    .ThenInclude(sr => sr.Subject)               
+                .Include(t => t.SessionRequests)                   
+                    .ThenInclude(sr => sr.Student)                 
+                         .ThenInclude(st => st.ApplicationUser)     
                 .FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
         }
     }

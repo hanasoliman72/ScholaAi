@@ -1,4 +1,5 @@
 ﻿using ScholaAi.DTOs.Student;
+using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Services.Base;
 
@@ -18,6 +19,8 @@ namespace ScholaAi.Services.Student
             var student = await _repository.GetStudentDashboardAsync(studentId);
             if (student == null)
                 throw new Exception("Student not found");
+
+            var now = DateTime.UtcNow;
 
             // Avg Focus Score
             var completedSessions = student.Sessions
@@ -39,19 +42,21 @@ namespace ScholaAi.Services.Student
             );
 
             // Upcoming Sessions
-            var upcomingSessions = student.Sessions
-                .Where(s =>
-                    s.SessionRequest.FinalScheduledAt.HasValue &&
-                    s.SessionRequest.FinalScheduledAt.Value > DateTime.UtcNow
-                )
-                .OrderBy(s => s.SessionRequest.FinalScheduledAt)
-                .Select(s => new UpcomingSessionDto
-                {
-                    TeacherName = s.Teacher.ApplicationUser.FirstName + " " + s.Teacher.ApplicationUser.LastName,
-                    SubjectName = s.SessionRequest.Subject.name,
-                    ScheduledAt = s.SessionRequest.FinalScheduledAt!.Value
-                })
-                .ToList();
+            var upcomingSessions = student.SessionRequests != null
+                ? student.SessionRequests
+                    .Where(sr =>
+                        sr.PreferredDate > now &&
+                        sr.Status == RequestStatus.Accepted
+                    )
+                    .OrderBy(sr => sr.PreferredDate)
+                    .Select(sr => new UpcomingSessionDto
+                    {
+                        TeacherName = sr.Teacher?.ApplicationUser?.UserName ?? "Unknown Teacher",
+                        SubjectName = sr.Subject?.name ?? "Unknown Subject",
+                        ScheduledAt = sr.PreferredDate
+                    })
+                    .ToList()
+                : new List<UpcomingSessionDto>();
 
             // Recent Sessions
             var recentSessions = completedSessions
