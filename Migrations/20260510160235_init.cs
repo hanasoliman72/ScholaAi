@@ -403,7 +403,11 @@ namespace ScholaAi.Migrations
                     StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RecordedSession = table.Column<long>(type: "bigint", nullable: false),
                     Summary = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FocusScore = table.Column<int>(type: "int", nullable: true)
+                    FocusScore = table.Column<int>(type: "int", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RoomId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {

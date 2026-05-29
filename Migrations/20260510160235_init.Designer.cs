@@ -12,8 +12,8 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    [Migration("20260502034709_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260510160235_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -492,6 +492,9 @@ namespace ScholaAi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SessionId"));
 
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("FocusScore")
                         .HasColumnType("int");
 
@@ -500,6 +503,17 @@ namespace ScholaAi.Migrations
 
                     b.Property<int>("RequestId")
                         .HasColumnType("int");
+
+                    b.Property<string>("RoomId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StudentId")
                         .IsRequired()

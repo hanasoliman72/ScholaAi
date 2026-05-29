@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using ScholaAi.DTOs.Payments;
 using ScholaAi.Models;
 using ScholaAi.Services.Base;
@@ -24,15 +24,32 @@ namespace ScholaAi.Services.payments
 
         public async Task<PaymentIntentResponseDto> CreatePaymentIntentAsync(string userId, decimal amount)
         {
+            //var options = new PaymentIntentCreateOptions
+            //{
+            //    Amount = (long)(amount * 100),
+            //    Currency = "usd",
+            //    Metadata = new Dictionary<string, string>
+            //{
+            //    { "userId", userId },
+            //    { "type", "wallet_topup" }
+            //}
+            //};
             var options = new PaymentIntentCreateOptions
             {
                 Amount = (long)(amount * 100),
                 Currency = "usd",
+
+                AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                {
+                    Enabled = true,
+                    AllowRedirects = "never"
+                },
+
                 Metadata = new Dictionary<string, string>
-            {
-                { "userId", userId },
-                { "type", "wallet_topup" }
-            }
+    {
+        { "userId", userId },
+        { "type", "wallet_topup" }
+    }
             };
 
             var service = new PaymentIntentService();
@@ -68,13 +85,7 @@ namespace ScholaAi.Services.payments
 
                     await _walletService.CreditWalletAsync(userId, amount);
 
-                    await _walletService.RecordTransactionAsync(
-                        fromUserId: "stripe",
-                        toUserId: userId,
-                        sessionId: 0,
-                        amount: amount,
-                        platformFee: 0
-                    );
+
                 }
 
                 return true;
