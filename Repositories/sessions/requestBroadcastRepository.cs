@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScholaAi.DTOs.Sessions;
 using ScholaAi.Models;
 using ScholaAi.Repositories;
@@ -48,7 +48,7 @@ public class requestBroadcastRepository : genericRepository<RequestBroadcast>, I
     public async Task<List<teacherRequestDto>> GetForTeacher(string teacherId)
     {
         return await _context.RequestBroadcasts
-            .Where(b => b.TeacherId == teacherId && b.IsAccepted == false)
+            .Where(b => b.TeacherId == teacherId)
             .Include(b => b.SessionRequest)
                 .ThenInclude(r => r.Student)
                     .ThenInclude(s => s.ApplicationUser)  // Get student's user info
@@ -62,7 +62,8 @@ public class requestBroadcastRepository : genericRepository<RequestBroadcast>, I
                     b.SessionRequest.Student.ApplicationUser.LastName,
                 subject = b.SessionRequest.Subject.name,
                 preferredDate = b.SessionRequest.PreferredDate,
-                description = b.SessionRequest.Description
+                description = b.SessionRequest.Description,
+                isAccepted = b.IsAccepted
             })
             .ToListAsync();
     }
