@@ -1,4 +1,4 @@
-﻿using ScholaAi.Models;
+using ScholaAi.Models;
 
 namespace ScholaAi.Repositories.Base
 {
@@ -6,6 +6,8 @@ namespace ScholaAi.Repositories.Base
     {
         Task<Session?> GetByIdAsync(int sessionId);
         Task<Session?> GetByRequestIdAsync(int requestId);
+        Task<bool> HasActiveSessionForTeacherAsync(string teacherId);
+        Task<bool> HasActiveSessionForStudentAsync(string studentId);
         Task AddAsync(Session session);
         Task SaveAsync();
     }

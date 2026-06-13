@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 
@@ -25,6 +25,18 @@ namespace ScholaAi.Repositories.sessions
         {
             return await _context.Sessions
                 .FirstOrDefaultAsync(s => s.RequestId == requestId);
+        }
+
+        public async Task<bool> HasActiveSessionForTeacherAsync(string teacherId)
+        {
+            return await _context.Sessions
+                .AnyAsync(s => s.TeacherId == teacherId && s.Status == "active");
+        }
+
+        public async Task<bool> HasActiveSessionForStudentAsync(string studentId)
+        {
+            return await _context.Sessions
+                .AnyAsync(s => s.StudentId == studentId && s.Status == "active");
         }
 
         public async Task AddAsync(Session session)

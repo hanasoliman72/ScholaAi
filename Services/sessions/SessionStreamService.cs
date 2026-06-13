@@ -1,4 +1,4 @@
-﻿using ScholaAi.DTOs.Sessions;
+using ScholaAi.DTOs.Sessions;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.sessions;
@@ -62,6 +62,14 @@ namespace ScholaAi.Services.sessions
 
             if (request.Status != RequestStatus.Accepted)
                 throw new Exception("Request is not accepted yet");
+
+            // prevent starting if teacher already has an active session
+            if (await _sessionRepo.HasActiveSessionForTeacherAsync(teacherId))
+                throw new Exception("You already have an active session. Please end it before starting a new one.");
+
+            // prevent starting if student already has an active session
+            if (await _sessionRepo.HasActiveSessionForStudentAsync(request.StudentId))
+                throw new Exception("The student is already in another active session.");
 
             // prevent starting an already active session
             var existing = await _sessionRepo.GetByRequestIdAsync(requestId);

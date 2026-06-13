@@ -1,4 +1,4 @@
-﻿using ScholaAi.DTOs.Student;
+using ScholaAi.DTOs.Student;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Services.Base;
@@ -41,16 +41,24 @@ namespace ScholaAi.Services.Student
                 s.SessionRequest.FinalScheduledAt.Value.Year == currentYear
             );
 
-            // Upcoming Sessions
+            // Upcoming Sessions — future accepted requests that do NOT yet have an active session
+            var activeRequestIds = student.Sessions != null
+                ? new HashSet<int>(student.Sessions
+                    .Where(s => s.Status == "active")
+                    .Select(s => s.RequestId))
+                : new HashSet<int>();
+
             var upcomingSessions = student.SessionRequests != null
                 ? student.SessionRequests
                     .Where(sr =>
-                        sr.PreferredDate > now &&
-                        sr.Status == RequestStatus.Accepted
+                        sr.Status == RequestStatus.Accepted &&
+                        sr.PreferredDate > DateTime.UtcNow &&
+                        !activeRequestIds.Contains(sr.RequestId)
                     )
                     .OrderBy(sr => sr.PreferredDate)
                     .Select(sr => new UpcomingSessionDto
                     {
+                        RequestId = sr.RequestId,
                         TeacherName = sr.Teacher?.ApplicationUser?.UserName ?? "Unknown Teacher",
                         SubjectName = sr.Subject?.name ?? "Unknown Subject",
                         ScheduledAt = sr.PreferredDate
@@ -58,18 +66,37 @@ namespace ScholaAi.Services.Student
                     .ToList()
                 : new List<UpcomingSessionDto>();
 
-            // Recent Sessions
-            var recentSessions = completedSessions
-                .OrderByDescending(s => s.SessionRequest.FinalScheduledAt)
-                .Take(5)
-                .Select(s => new RecentSessionDto
-                {
-                    TeacherName = s.Teacher.ApplicationUser.FirstName + " " + s.Teacher.ApplicationUser.LastName,
-                    SubjectName = s.SessionRequest.Subject.name,
-                    ScheduledAt = s.SessionRequest.FinalScheduledAt!.Value,
-                    FocusScore = s.FocusScore!.Value
-                })
-                .ToList();
+            // ACTIVE SESSIONS
+            var activeSessions = student.Sessions != null
+                ? student.Sessions
+                    .Where(s =>
+                        s.Status == "active"
+                    )
+                    .Select(s => new ActiveSessionDto
+                    {
+                        TeacherName = s.Teacher?.ApplicationUser?.UserName ?? "Unknown Teacher",
+                        SubjectName = s.SessionRequest?.Subject?.name ?? "Unknown Subject",
+                        ScheduledAt = s.SessionRequest?.FinalScheduledAt ?? s.StartedAt ?? now,
+                        sessionId = s.SessionId
+                    })
+                    .ToList()
+                : new List<ActiveSessionDto>();
+
+            // Recent Sessions (last 3 ended sessions)
+            var recentSessions = student.Sessions != null
+                ? student.Sessions
+                    .Where(s => s.Status == "ended" && s.SessionRequest != null)
+                    .OrderByDescending(s => s.EndedAt ?? s.SessionRequest.FinalScheduledAt)
+                    .Take(3)
+                    .Select(s => new RecentSessionDto
+                    {
+                        TeacherName = s.Teacher.ApplicationUser.FirstName + " " + s.Teacher.ApplicationUser.LastName,
+                        SubjectName = s.SessionRequest.Subject.name,
+                        ScheduledAt = s.SessionRequest.FinalScheduledAt ?? s.EndedAt ?? DateTime.UtcNow,
+                        FocusScore = s.FocusScore
+                    })
+                    .ToList()
+                : new List<RecentSessionDto>();
 
             // Weekly Engagement
             var weeklyEngagement = completedSessions
@@ -114,6 +141,7 @@ namespace ScholaAi.Services.Student
                 AvgFocusScore = avgFocus,
                 SessionsThisMonth = sessionsThisMonth,
                 UpcomingSessions = upcomingSessions,
+                ActiveSessions = activeSessions,
                 RecentSessions = recentSessions,
                 WeeklyEngagement = weeklyEngagement,
                 WalletBalance = wallet?.Balance ?? 0,
