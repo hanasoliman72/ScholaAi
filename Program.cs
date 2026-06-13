@@ -98,10 +98,9 @@ namespace ScholaAi
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
             builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
-
             builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 
-=======
+
             builder.Services.AddScoped<IWalletRepository, WalletRepository>();
             //builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 
