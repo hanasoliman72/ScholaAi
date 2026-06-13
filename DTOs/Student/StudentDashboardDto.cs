@@ -1,4 +1,4 @@
-﻿namespace ScholaAi.DTOs.Student
+namespace ScholaAi.DTOs.Student
 {
     public class StudentDashboardDto
     {
@@ -12,6 +12,8 @@
 
         public List<UpcomingSessionDto> UpcomingSessions { get; set; } = new();
 
+        public List<ActiveSessionDto> ActiveSessions { get; set; } = new();
+
         public List<RecentSessionDto> RecentSessions { get; set; } = new();
 
         public List<WeeklyEngagementDto> WeeklyEngagement { get; set; } = new();
@@ -19,8 +21,17 @@
         public WalletSummaryDto WalletSummary { get; set; }
     }
 
+    public class ActiveSessionDto
+    {
+        public string TeacherName { get; set; }
+        public string SubjectName { get; set; }
+        public DateTime ScheduledAt { get; set; }
+        public int sessionId { get; set; }
+    }
+
     public class UpcomingSessionDto
     {
+        public int RequestId { get; set; }
         public string TeacherName { get; set; }
         public string SubjectName { get; set; }
         public DateTime ScheduledAt { get; set; }
