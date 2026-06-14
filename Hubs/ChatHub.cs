@@ -31,6 +31,9 @@ namespace ScholaAi.Hubs
             if (string.IsNullOrEmpty(senderId))
                 return;
 
+            if (string.IsNullOrWhiteSpace(messageText))
+                return;
+
             var savedMessage = await _chatService
                 .SaveMessageAsync(
                     senderId,

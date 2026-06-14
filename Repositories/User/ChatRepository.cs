@@ -38,40 +38,53 @@ namespace ScholaAi.Repositories.User
 
         public async Task<List<ConversationSummaryDto>> GetUserConversationsAsync(string userId)
         {
-            // Get all messages where the user is either sender or receiver
-            var userMessages = await _context.ChatMessages
-                .Include(m => m.Sender)
-                .Include(m => m.Receiver)
+            // Get the IDs of the latest messages in each conversation (group by the other user)
+            var latestMessageIds = await _context.ChatMessages
                 .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+                .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
+                .Select(g => g.Max(m => m.MessageId))
                 .ToListAsync();
 
-            // Group by the "other" user ID
-            var conversations = userMessages
-                .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
-                .Select(group =>
+            // Load those messages with their related user profiles, and project to DTO
+            var conversations = await _context.ChatMessages
+                .Include(m => m.Sender)
+                .Include(m => m.Receiver)
+                .Where(m => latestMessageIds.Contains(m.MessageId))
+                .Select(m => new ConversationSummaryDto
                 {
-                    var otherUserId = group.Key;
-                    var lastMessage = group.OrderByDescending(m => m.SentAt).First();
-                    // Grab the other user's model to get their name
-                    var otherUser = lastMessage.SenderId == otherUserId ? lastMessage.Sender : lastMessage.Receiver;
-
-                    var unreadCount = group.Count(m => m.ReceiverId == userId && !m.IsRead);
-
-                    return new ConversationSummaryDto
-                    {
-                        OtherUserId = otherUserId,
-                        OtherUserName = otherUser != null ? $"{otherUser.FirstName} {otherUser.LastName}" : "Unknown User",
-                        OtherUserRole = "", // You might need to query the userManager for roles separately if strictly needed
-                        LastMessageText = lastMessage.MessageText ?? (lastMessage.MessageType == "image" ? "📷 Image" : ""),
-                        LastMessageType = lastMessage.MessageType,
-                        LastMessageTime = lastMessage.SentAt,
-                        UnreadCount = unreadCount
-                    };
+                    OtherUserId = m.SenderId == userId ? m.ReceiverId : m.SenderId,
+                    OtherUserName = m.SenderId == userId 
+                        ? (m.Receiver != null ? m.Receiver.FirstName + " " + m.Receiver.LastName : "Unknown User")
+                        : (m.Sender != null ? m.Sender.FirstName + " " + m.Sender.LastName : "Unknown User"),
+                    OtherUserRole = "",
+                    LastMessageText = m.MessageText ?? (m.MessageType == "image" ? "📷 Image" : ""),
+                    LastMessageType = m.MessageType,
+                    LastMessageTime = m.SentAt,
+                    UnreadCount = _context.ChatMessages.Count(x => 
+                        x.SenderId == (m.SenderId == userId ? m.ReceiverId : m.SenderId) && 
+                        x.ReceiverId == userId && 
+                        !x.IsRead)
                 })
                 .OrderByDescending(c => c.LastMessageTime)
-                .ToList();
+                .ToListAsync();
 
             return conversations;
+        }
+
+        public async Task MarkMessagesAsReadAsync(string userId, string senderId)
+        {
+            var unreadMessages = await _context.ChatMessages
+                .Where(m => m.ReceiverId == userId && m.SenderId == senderId && !m.IsRead)
+                .ToListAsync();
+
+            if (unreadMessages.Any())
+            {
+                foreach (var msg in unreadMessages)
+                {
+                    msg.IsRead = true;
+                }
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
