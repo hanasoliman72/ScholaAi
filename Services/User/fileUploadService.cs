@@ -64,9 +64,10 @@ namespace ScholaAi.Services.User
 
             using var stream = file.OpenReadStream();
             using var content = new StreamContent(stream);
+            var rawContentType = file.ContentType ?? "video/webm";
+            var baseContentType = rawContentType.Split(';')[0].Trim();
             content.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue(
-                    file.ContentType ?? "video/webm");
+                new System.Net.Http.Headers.MediaTypeHeaderValue(baseContentType);
 
             var requestMsg = new HttpRequestMessage(HttpMethod.Post, uploadUrl)
             {

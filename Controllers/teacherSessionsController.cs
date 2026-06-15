@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ScholaAi.DTOs.Sessions;
 using ScholaAi.Services.Base;
@@ -133,22 +133,22 @@ namespace ScholaAi.Controllers
         [HttpPost("{sessionId}/upload-recording")]
         [RequestSizeLimit(2_000_000_000)] // 2GB
         [RequestFormLimits(MultipartBodyLengthLimit = 2_000_000_000)] // 2GB
-        public async Task<IActionResult> UploadRecording(int sessionId, IFormFile file, [FromForm] int duration)
+        public async Task<IActionResult> UploadRecording(int sessionId, [FromForm] UploadRecordingRequest request)
         {
             var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(teacherId))
                 return Unauthorized(new { message = "Invalid token" });
 
-            if (file == null || file.Length == 0)
+            if (request.File == null || request.File.Length == 0)
                 return BadRequest(new { message = "No file uploaded" });
 
             try
             {
-                var fileUrl = await _fileService.UploadToSupabaseAsync(file, "recordings");
+                var fileUrl = await _fileService.UploadToSupabaseAsync(request.File, "recordings");
                 if (fileUrl == null)
                     return BadRequest(new { message = "Upload failed" });
 
-                await _sessionStreamService.SaveRecording(teacherId, sessionId, fileUrl, duration);
+                await _sessionStreamService.SaveRecording(teacherId, sessionId, fileUrl, request.Duration);
 
                 return Ok(new { url = fileUrl });
             }
@@ -157,6 +157,12 @@ namespace ScholaAi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+    }
+
+    public class UploadRecordingRequest
+    {
+        public IFormFile File { get; set; } = null!;
+        public int Duration { get; set; }
     }
 
     public class EndSessionRequest
