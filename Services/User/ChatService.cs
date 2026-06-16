@@ -43,6 +43,11 @@ namespace ScholaAi.Services.User
         {
             return await _repo.GetUserConversationsAsync(userId);
         }
+
+        public async Task MarkMessagesAsReadAsync(string userId, string senderId)
+        {
+            await _repo.MarkMessagesAsReadAsync(userId, senderId);
+        }
     }
 }
 
