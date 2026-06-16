@@ -57,6 +57,7 @@ public class requestBroadcastRepository : genericRepository<RequestBroadcast>, I
             .Select(b => new teacherRequestDto
             {
                 sessionId = b.RequestId,
+                studentId = b.SessionRequest.Student.ApplicationUserId,
                 studentName =
                     b.SessionRequest.Student.ApplicationUser.FirstName + " " +
                     b.SessionRequest.Student.ApplicationUser.LastName,
