@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -575,7 +575,6 @@ namespace ScholaAi.Controllers
 
         // GET api/Admin/subjects
         [HttpGet("subjects")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetSubjects()
         {
             try

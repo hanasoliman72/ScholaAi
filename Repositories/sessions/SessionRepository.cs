@@ -18,6 +18,7 @@ namespace ScholaAi.Repositories.sessions
             return await _context.Sessions
                 .Include(s => s.Teacher).ThenInclude(t => t.ApplicationUser)
                 .Include(s => s.Student).ThenInclude(s => s.ApplicationUser)
+                .Include(s => s.SessionRequest).ThenInclude(sr => sr.Subject)
                 .FirstOrDefaultAsync(s => s.SessionId == sessionId);
         }
 
@@ -25,6 +26,17 @@ namespace ScholaAi.Repositories.sessions
         {
             return await _context.Sessions
                 .FirstOrDefaultAsync(s => s.RequestId == requestId);
+        }
+
+        public async Task<List<Session>> GetByStudentIdAsync(string studentId)
+        {
+            return await _context.Sessions
+                .Include(s => s.Teacher).ThenInclude(t => t.ApplicationUser)
+                .Include(s => s.SessionRequest).ThenInclude(sr => sr.Subject)
+                .Include(s => s.Rating)
+                .Where(s => s.StudentId == studentId)
+                .OrderByDescending(s => s.StartedAt ?? s.SessionRequest.PreferredDate)
+                .ToListAsync();
         }
 
         public async Task<bool> HasActiveSessionForTeacherAsync(string teacherId)

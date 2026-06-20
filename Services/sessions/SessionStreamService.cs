@@ -52,8 +52,60 @@ namespace ScholaAi.Services.sessions
                 RecordedSession = session.RecordedSession,  
                 Summary = session.Summary,           
                 FocusScore = session.FocusScore,        
-                RecordingDuration = session.RecordingDuration, 
+                RecordingDuration = session.RecordingDuration,
+                Subject = session.SessionRequest?.Subject?.name,
+                LessonTitle = session.SessionRequest?.Description,
             };
+        }
+
+        public async Task<List<studentSessionDto>> GetStudentSessions(string studentId)
+        {
+            var sessions = await _sessionRepo.GetByStudentIdAsync(studentId);
+            if (sessions == null) return new List<studentSessionDto>();
+
+            var dtos = new List<studentSessionDto>();
+            foreach (var session in sessions)
+            {
+                var teacherFirstName = session.Teacher?.ApplicationUser?.FirstName ?? "";
+                var teacherLastName = session.Teacher?.ApplicationUser?.LastName ?? "";
+                var teacherFullName = $"{teacherFirstName} {teacherLastName}".Trim();
+                if (string.IsNullOrEmpty(teacherFullName)) teacherFullName = "Teacher";
+
+                var initials = "";
+                if (!string.IsNullOrEmpty(teacherFirstName)) initials += teacherFirstName[0];
+                if (!string.IsNullOrEmpty(teacherLastName)) initials += teacherLastName[0];
+                if (string.IsNullOrEmpty(initials)) initials = "T";
+
+                var sessionDate = session.StartedAt?.ToString("MMM d, yyyy") 
+                    ?? session.SessionRequest?.PreferredDate.ToString("MMM d, yyyy") 
+                    ?? DateTime.UtcNow.ToString("MMM d, yyyy");
+
+                var durationStr = "0m";
+                if (session.RecordingDuration > 0)
+                {
+                    var ts = TimeSpan.FromSeconds(session.RecordingDuration);
+                    durationStr = ts.Hours > 0 ? $"{ts.Hours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+                }
+
+                dtos.Add(new studentSessionDto
+                {
+                    id = session.SessionId,
+                    subject = session.SessionRequest?.Subject?.name ?? "Other",
+                    lessonTitle = session.SessionRequest?.Description ?? "Private Session",
+                    teacher = teacherFullName,
+                    teacherInitials = initials.ToUpper(),
+                    date = sessionDate,
+                    duration = durationStr,
+                    focusScore = session.FocusScore,
+                    status = session.Status,
+                    recordedSession = session.RecordedSession,
+                    summary = session.Summary,
+                    ratingId = session.Rating?.RatingId,
+                    ratingValue = session.Rating?.RatingValue
+                });
+            }
+
+            return dtos;
         }
 
         public async Task<StartSessionResponseDto> StartSession(string teacherId, int requestId)

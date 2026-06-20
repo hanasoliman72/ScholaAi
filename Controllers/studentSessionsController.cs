@@ -20,9 +20,7 @@ namespace ScholaAi.Controllers
             _sessionStreamService = sessionStream;
         }
 
-        // ============================
-        // Create Session request
-        // ============================
+        // POST: api/studentSessions/CreateRequest
         [HttpPost("CreateRequest")]
         public async Task<IActionResult> Create([FromBody] createSessionRequestDto dto)
         {
@@ -45,9 +43,7 @@ namespace ScholaAi.Controllers
             });
         }
 
-        // ============================
-        // Get my requests
-        // ============================
+        // GET: api/studentSessions/GetMyRequests
         [HttpGet("GetMyRequests")]
         public async Task<IActionResult> GetMyRequests()
         {
@@ -60,6 +56,18 @@ namespace ScholaAi.Controllers
             var requests = await _sessionService.GetStudentRequests(studentId);
 
             return Ok(requests);
+        }
+
+        // GET: api/studentSessions/GetMySessions
+        [HttpGet("GetMySessions")]
+        public async Task<IActionResult> GetMySessions()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null)
+                return Unauthorized(new { message = "Invalid token" });
+            string studentId = claim.Value;
+            var sessions = await _sessionStreamService.GetStudentSessions(studentId);
+            return Ok(sessions);
         }
 
         // GET: api/studentSessions/{sessionId}

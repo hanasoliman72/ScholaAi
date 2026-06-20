@@ -139,11 +139,11 @@ namespace ScholaAi.Services.sessions
             await _context.SaveChangesAsync(); // ? FIX: Was missing!
         }
 
-        public async Task<List<studentSessionDto>> GetStudentRequests(string studentId)
+        public async Task<List<studentRequestDto>> GetStudentRequests(string studentId)
         {
             var requests = await _requestRepo.GetForStudent(studentId);
 
-            return requests.Select(r => new studentSessionDto
+            return requests.Select(r => new studentRequestDto
             {
                 sessionId = r.RequestId,
                 subject = r.Subject.name,

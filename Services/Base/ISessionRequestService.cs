@@ -8,6 +8,6 @@ namespace ScholaAi.Services.Base
         Task<List<teacherRequestDto>> GetTeacherRequests(string teacherId);
         Task AcceptRequest(string teacherId, int sessionId);
         Task RejectRequest(string teacherId, int sessionId);
-        Task<List<studentSessionDto>> GetStudentRequests(string studentId);
+        Task<List<studentRequestDto>> GetStudentRequests(string studentId);
     }
 }

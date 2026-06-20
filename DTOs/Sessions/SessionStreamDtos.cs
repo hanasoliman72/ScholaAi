@@ -1,4 +1,4 @@
-﻿namespace ScholaAi.DTOs.Sessions
+namespace ScholaAi.DTOs.Sessions
 {
     public class SessionDetailsDto
     {
@@ -14,7 +14,9 @@
         public string? RecordedSession { get; set; }  
         public string? Summary { get; set; }           
         public int? FocusScore { get; set; }           
-        public int RecordingDuration { get; set; }    
+        public int RecordingDuration { get; set; }
+        public string? Subject { get; set; }
+        public string? LessonTitle { get; set; }
     }
 
     public class StartSessionResponseDto
