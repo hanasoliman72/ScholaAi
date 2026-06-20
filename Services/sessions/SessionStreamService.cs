@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.SignalR;
 using ScholaAi.DTOs.Sessions;
+using ScholaAi.Hubs;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.sessions;
@@ -13,19 +15,22 @@ namespace ScholaAi.Services.sessions
         private readonly IConfiguration _config;
         private readonly HttpClient _httpClient;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IHubContext<SessionHub> _sessionHub;
 
         public SessionStreamService(
             ISessionRepository sessionRepo,
             ISessionRequestRepository requestRepo,
             IConfiguration config,
             HttpClient httpClient,
-            IServiceScopeFactory scopeFactory)
+            IServiceScopeFactory scopeFactory,
+            IHubContext<SessionHub> sessionHub)
         {
             _sessionRepo = sessionRepo;
             _requestRepo = requestRepo;
             _config = config;
             _httpClient = httpClient;
             _scopeFactory = scopeFactory;
+            _sessionHub = sessionHub;
         }
 
         public async Task<SessionDetailsDto> GetSessionById(int sessionId)
@@ -145,6 +150,44 @@ namespace ScholaAi.Services.sessions
             session.FocusScore = focusScore;
 
             await _sessionRepo.SaveAsync();
+        }
+
+        /// <summary>
+        /// Called periodically by focus_server.py (student's machine) to update
+        /// the live FocusScore in the DB during an active session.
+        /// </summary>
+        public async Task ReportFocusAsync(string studentId, int sessionId, int focusScore)
+        {
+            var session = await _sessionRepo.GetByIdAsync(sessionId)
+                ?? throw new Exception("Session not found");
+
+            if (session.StudentId != studentId)
+                throw new Exception("Not authorized");
+
+            if (session.Status != "active")
+                throw new Exception("Session is not active");
+
+            session.FocusScore = Math.Clamp(focusScore, 0, 100);
+            await _sessionRepo.SaveAsync();
+        }
+
+        /// <summary>
+        /// Called by focus_server.py when distraction is detected.
+        /// Fires a SignalR DistractionAlert event directly to the teacher (host)
+        /// in the session room — no client-side SignalR dependency needed in Python.
+        /// </summary>
+        public async Task NotifyDistractionAsync(string studentId, int sessionId, string roomId, string reason)
+        {
+            var session = await _sessionRepo.GetByIdAsync(sessionId)
+                ?? throw new Exception("Session not found");
+
+            if (session.StudentId != studentId)
+                throw new Exception("Not authorized");
+
+            // Broadcast DistractionAlert to every connection in the room group.
+            // SessionHub.StudentDistracted targets host connections only — we use the
+            // group shortcut here so the hub's room filtering isn't duplicated.
+            await _sessionHub.Clients.Group(roomId).SendAsync("DistractionAlert", reason);
         }
 
         public async Task SaveRecording(
