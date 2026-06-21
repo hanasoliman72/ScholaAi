@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.SignalR;
 using ScholaAi.DTOs.Sessions;
+using ScholaAi.Hubs;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
 using ScholaAi.Repositories.sessions;
@@ -13,19 +15,22 @@ namespace ScholaAi.Services.sessions
         private readonly IConfiguration _config;
         private readonly HttpClient _httpClient;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IHubContext<SessionHub> _sessionHub;
 
         public SessionStreamService(
             ISessionRepository sessionRepo,
             ISessionRequestRepository requestRepo,
             IConfiguration config,
             HttpClient httpClient,
-            IServiceScopeFactory scopeFactory)
+            IServiceScopeFactory scopeFactory,
+            IHubContext<SessionHub> sessionHub)
         {
             _sessionRepo = sessionRepo;
             _requestRepo = requestRepo;
             _config = config;
             _httpClient = httpClient;
             _scopeFactory = scopeFactory;
+            _sessionHub = sessionHub;
         }
 
         public async Task<SessionDetailsDto> GetSessionById(int sessionId)
@@ -47,8 +52,60 @@ namespace ScholaAi.Services.sessions
                 RecordedSession = session.RecordedSession,  
                 Summary = session.Summary,           
                 FocusScore = session.FocusScore,        
-                RecordingDuration = session.RecordingDuration, 
+                RecordingDuration = session.RecordingDuration,
+                Subject = session.SessionRequest?.Subject?.name,
+                LessonTitle = session.SessionRequest?.Description,
             };
+        }
+
+        public async Task<List<studentSessionDto>> GetStudentSessions(string studentId)
+        {
+            var sessions = await _sessionRepo.GetByStudentIdAsync(studentId);
+            if (sessions == null) return new List<studentSessionDto>();
+
+            var dtos = new List<studentSessionDto>();
+            foreach (var session in sessions)
+            {
+                var teacherFirstName = session.Teacher?.ApplicationUser?.FirstName ?? "";
+                var teacherLastName = session.Teacher?.ApplicationUser?.LastName ?? "";
+                var teacherFullName = $"{teacherFirstName} {teacherLastName}".Trim();
+                if (string.IsNullOrEmpty(teacherFullName)) teacherFullName = "Teacher";
+
+                var initials = "";
+                if (!string.IsNullOrEmpty(teacherFirstName)) initials += teacherFirstName[0];
+                if (!string.IsNullOrEmpty(teacherLastName)) initials += teacherLastName[0];
+                if (string.IsNullOrEmpty(initials)) initials = "T";
+
+                var sessionDate = session.StartedAt?.ToString("MMM d, yyyy") 
+                    ?? session.SessionRequest?.PreferredDate.ToString("MMM d, yyyy") 
+                    ?? DateTime.UtcNow.ToString("MMM d, yyyy");
+
+                var durationStr = "0m";
+                if (session.RecordingDuration > 0)
+                {
+                    var ts = TimeSpan.FromSeconds(session.RecordingDuration);
+                    durationStr = ts.Hours > 0 ? $"{ts.Hours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+                }
+
+                dtos.Add(new studentSessionDto
+                {
+                    id = session.SessionId,
+                    subject = session.SessionRequest?.Subject?.name ?? "Other",
+                    lessonTitle = session.SessionRequest?.Description ?? "Private Session",
+                    teacher = teacherFullName,
+                    teacherInitials = initials.ToUpper(),
+                    date = sessionDate,
+                    duration = durationStr,
+                    focusScore = session.FocusScore,
+                    status = session.Status,
+                    recordedSession = session.RecordedSession,
+                    summary = session.Summary,
+                    ratingId = session.Rating?.RatingId,
+                    ratingValue = session.Rating?.RatingValue
+                });
+            }
+
+            return dtos;
         }
 
         public async Task<StartSessionResponseDto> StartSession(string teacherId, int requestId)
@@ -145,6 +202,44 @@ namespace ScholaAi.Services.sessions
             session.FocusScore = focusScore;
 
             await _sessionRepo.SaveAsync();
+        }
+
+        /// <summary>
+        /// Called periodically by focus_server.py (student's machine) to update
+        /// the live FocusScore in the DB during an active session.
+        /// </summary>
+        public async Task ReportFocusAsync(string studentId, int sessionId, int focusScore)
+        {
+            var session = await _sessionRepo.GetByIdAsync(sessionId)
+                ?? throw new Exception("Session not found");
+
+            if (session.StudentId != studentId)
+                throw new Exception("Not authorized");
+
+            if (session.Status != "active")
+                throw new Exception("Session is not active");
+
+            session.FocusScore = Math.Clamp(focusScore, 0, 100);
+            await _sessionRepo.SaveAsync();
+        }
+
+        /// <summary>
+        /// Called by focus_server.py when distraction is detected.
+        /// Fires a SignalR DistractionAlert event directly to the teacher (host)
+        /// in the session room — no client-side SignalR dependency needed in Python.
+        /// </summary>
+        public async Task NotifyDistractionAsync(string studentId, int sessionId, string roomId, string reason)
+        {
+            var session = await _sessionRepo.GetByIdAsync(sessionId)
+                ?? throw new Exception("Session not found");
+
+            if (session.StudentId != studentId)
+                throw new Exception("Not authorized");
+
+            // Broadcast DistractionAlert to every connection in the room group.
+            // SessionHub.StudentDistracted targets host connections only — we use the
+            // group shortcut here so the hub's room filtering isn't duplicated.
+            await _sessionHub.Clients.Group(roomId).SendAsync("DistractionAlert", reason);
         }
 
         public async Task SaveRecording(
