@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ScholaAi.DTOs.Admin;
 using ScholaAi.Models;
@@ -329,12 +329,12 @@ namespace ScholaAi.Repositories.Admin
                 .Select(t => new AdminPaymentListDto
                 {
                     TransactionId = t.TransactionId,
-                    FromUserName = t.FromWallet.ApplicationUser.UserName,
-                    ToUserName = t.ToWallet.ApplicationUser.UserName,
+                    FromUserName = t.FromWallet != null && t.FromWallet.ApplicationUser != null ? t.FromWallet.ApplicationUser.UserName : "System/Stripe",
+                    ToUserName = t.ToWallet != null && t.ToWallet.ApplicationUser != null ? t.ToWallet.ApplicationUser.UserName : "System/Stripe",
                     Amount = t.Amount,
                     PlatformFee = t.PlatformFee,
                     CreatedAt = t.CreatedAt,
-                    SessionId = t.SessionId
+                    SessionId = t.SessionId ?? 0
                 })
                 .ToListAsync();
 
@@ -357,12 +357,12 @@ namespace ScholaAi.Repositories.Admin
                 .Select(t => new AdminPaymentListDto
                 {
                     TransactionId = t.TransactionId,
-                    FromUserName = t.FromWallet.ApplicationUser.UserName,
-                    ToUserName = t.ToWallet.ApplicationUser.UserName,
+                    FromUserName = t.FromWallet != null && t.FromWallet.ApplicationUser != null ? t.FromWallet.ApplicationUser.UserName : "System/Stripe",
+                    ToUserName = t.ToWallet != null && t.ToWallet.ApplicationUser != null ? t.ToWallet.ApplicationUser.UserName : "System/Stripe",
                     Amount = t.Amount,
                     PlatformFee = t.PlatformFee,
                     CreatedAt = t.CreatedAt,
-                    SessionId = t.SessionId
+                    SessionId = t.SessionId ?? 0
                 })
                 .FirstOrDefaultAsync();
         }

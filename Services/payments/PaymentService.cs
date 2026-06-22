@@ -84,6 +84,7 @@ namespace ScholaAi.Services.payments
                     var amount = intent.Amount / 100m;
 
                     await _walletService.CreditWalletAsync(userId, amount);
+                    await _walletService.RecordTopupAsync(userId, amount);
 
 
                 }

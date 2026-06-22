@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +63,29 @@ namespace ScholaAi.Controllers
                 return BadRequest("Invalid webhook.");
 
             return Ok();
+        }
+
+        [HttpPost("confirm-and-credit-test")]
+        public async Task<IActionResult> ConfirmAndCreditTest([FromBody] CreatePaymentIntentDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            await _walletService.CreditWalletAsync(userId, dto.Amount);
+            await _walletService.RecordTopupAsync(userId, dto.Amount);
+            return Ok(new { success = true, message = "Wallet successfully credited (test mode)" });
+        }
+
+        [HttpGet("transactions")]
+        public async Task<IActionResult> GetTransactions()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var transactions = await _walletService.GetTransactionsByUserIdAsync(userId);
+            return Ok(transactions);
         }
 
     }
