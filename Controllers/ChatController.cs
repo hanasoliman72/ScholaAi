@@ -57,5 +57,18 @@ namespace ScholaAi.Controllers
 
             return Ok(response);
         }
+
+        [HttpPost("read/{senderId}")]
+        public async Task<IActionResult> MarkAsRead(string senderId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            await _chatService.MarkMessagesAsReadAsync(userId, senderId);
+            return Ok(new { message = "Messages marked as read successfully." });
+        }
     }
 }

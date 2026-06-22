@@ -83,6 +83,8 @@ namespace ScholaAi
           
             builder.Services.AddScoped<IWalletService, WalletService>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IChatRepository, ChatRepository>();
+            builder.Services.AddScoped<IChatService, ChatService>();
 
 
 
@@ -124,6 +126,24 @@ namespace ScholaAi
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secretkey"])
                     )
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/chatHub") ||
+                             path.StartsWithSegments("/notificationHub") ||
+                             path.StartsWithSegments("/hub/session")))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
             // Payment Getway
