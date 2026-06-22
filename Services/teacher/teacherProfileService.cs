@@ -17,18 +17,21 @@ namespace ScholaAi.Services.Teacher
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IFileUploadService _fileUploadService;
         private readonly IUserRepository _userRepository;
+        private readonly IRatingService _ratingService;
 
 
         public teacherProfileService(
             IUserRepository userRepository,
             ITeacherRepository teacherRepository,
             UserManager<ApplicationUser> userManager,
-            IFileUploadService fileUploadService)
+            IFileUploadService fileUploadService,
+            IRatingService ratingService)
         {
             _userRepository = userRepository;
             _teacherRepository = teacherRepository;
             _userManager = userManager;
             _fileUploadService = fileUploadService;
+            _ratingService = ratingService;
         }
 
         // ===============================
@@ -41,6 +44,8 @@ namespace ScholaAi.Services.Teacher
             if (teacher == null || teacher.ApplicationUser == null)
                 return null;
 
+            var ratingResult = await _ratingService.getTeacherAverageRatingAsync(teacherId);
+
             return new teacherProfileDto
             {
                 userName = teacher.ApplicationUser.UserName,
@@ -50,6 +55,8 @@ namespace ScholaAi.Services.Teacher
                 description = teacher.ApplicationUser.Description,
                 profilePhotoURL = teacher.ApplicationUser.ProfilePhotoURL,
                 college = teacher.College,
+                averageRate = ratingResult.averageRating,
+                totalRatings = ratingResult.totalRatings,
                 teachingExperience = teacher.TeachingExperience
             };
         }
@@ -223,12 +230,13 @@ namespace ScholaAi.Services.Teacher
                     .Where(s => s.FocusScore.HasValue)
                     .ToList();
 
-                var totalHours = sessions
-                    .Where(s => s.RecordingDuration > 0)
-                    .Sum(s => s.RecordingDuration) / 3600.0m;
+                var totalHours = Math.Round(
+                sessions
+                .Where(s => s.RecordingDuration > 0)
+                .Sum(s => s.RecordingDuration) / 3600.0m, 2);
 
                 double? avgFocus = completedSessions.Any()
-                    ? completedSessions.Average(s => (double)s.FocusScore!.Value)
+                    ? Math.Round(completedSessions.Average(s => (double)s.FocusScore!.Value),2)
                     : null;
 
                 var lastSession = completedSessions
@@ -273,8 +281,7 @@ namespace ScholaAi.Services.Teacher
                 else previousCards.Add(card);
             }
 
-            var ratings = await _teacherRepository.getByIdWithUserAsync(teacherId);
-            var avgRating = ratings?.TotalRates ?? 0;
+            var ratingResult = await _ratingService.getTeacherAverageRatingAsync(teacherId);
 
             var summary = new MyStudentsSummaryDto
             {
@@ -282,10 +289,15 @@ namespace ScholaAi.Services.Teacher
                 ActiveStudents = activeCards.Count,
                 PreviousStudents = previousCards.Count,
                 TotalSessions = allSessions.Count,
-                TotalHoursTaught = allSessions
-                    .Where(s => s.RecordingDuration > 0)
-                    .Sum(s => s.RecordingDuration) / 3600.0m,
-                AverageRating = (decimal)Math.Round((double)avgRating, 1)
+
+                TotalHoursTaught = Math.Round(
+                    allSessions
+                        .Where(s => s.RecordingDuration > 0)
+                        .Sum(s => s.RecordingDuration) / 3600.0m,
+                    2
+                ),
+
+                AverageRating = ratingResult.averageRating
             };
 
             return new MyStudentsListResponseDto
@@ -326,12 +338,13 @@ namespace ScholaAi.Services.Teacher
                     !s.FocusScore.HasValue)
                 .ToList();
 
-            var totalHours = sessions
-                .Where(s => s.RecordingDuration > 0)
-                .Sum(s => s.RecordingDuration) / 3600.0m;
+            var totalHours = Math.Round(
+               sessions
+               .Where(s => s.RecordingDuration > 0)
+               .Sum(s => s.RecordingDuration) / 3600.0m,2);
 
             double? avgFocus = completedSessions.Any()
-                ? completedSessions.Average(s => (double)s.FocusScore!.Value)
+                ? Math.Round(completedSessions.Average(s => (double)s.FocusScore!.Value), 2)
                 : null;
 
             // Focus trend — last 5 completed sessions
