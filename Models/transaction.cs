@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,15 +10,12 @@ namespace ScholaAi.Models
         public int TransactionId { get; set; }
 
         // FK to Wallets (ApplicationUserId is string)
-        [Required]
-        public string FromWalletId { get; set; }
+        public string? FromWalletId { get; set; }
 
-        [Required]
-        public string ToWalletId { get; set; }
+        public string? ToWalletId { get; set; }
 
         // FK to Session
-        [Required]
-        public int SessionId { get; set; }
+        public int? SessionId { get; set; }
 
         [Precision(18, 4)]
         public decimal Amount { get; set; } = 0;
@@ -30,12 +27,12 @@ namespace ScholaAi.Models
 
         // Navigation properties
         [ForeignKey(nameof(FromWalletId))]
-        public Wallet FromWallet { get; set; }
+        public Wallet? FromWallet { get; set; }
 
         [ForeignKey(nameof(ToWalletId))]
-        public Wallet ToWallet { get; set; }
+        public Wallet? ToWallet { get; set; }
 
         [ForeignKey(nameof(SessionId))]
-        public Session Session { get; set; }
+        public Session? Session { get; set; }
     }
 }

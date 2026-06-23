@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScholaAi.Models;
 
@@ -11,9 +12,11 @@ using ScholaAi.Models;
 namespace ScholaAi.Migrations
 {
     [DbContext(typeof(DBcontext))]
-    partial class DBcontextModelSnapshot : ModelSnapshot
+    [Migration("20260622104402_MakeTransactionFieldsNullable")]
+    partial class MakeTransactionFieldsNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -495,11 +498,8 @@ namespace ScholaAi.Migrations
                     b.Property<int?>("FocusScore")
                         .HasColumnType("int");
 
-                    b.Property<string>("RecordedSession")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RecordingDuration")
-                        .HasColumnType("int");
+                    b.Property<long>("RecordedSession")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("RequestId")
                         .HasColumnType("int");
@@ -520,6 +520,7 @@ namespace ScholaAi.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Summary")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TeacherId")
