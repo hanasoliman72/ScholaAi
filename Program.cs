@@ -169,7 +169,13 @@ namespace ScholaAi
                     policy =>
                     {
                         policy
-                            .WithOrigins("http://localhost:5173") // React (Vite)
+                            .SetIsOriginAllowed(origin =>
+                            {
+                                // Allow localhost (dev) and any 192.168.x.x LAN device
+                                var host = new Uri(origin).Host;
+                                return host == "localhost" || host == "127.0.0.1"
+                                    || host.StartsWith("192.168.");
+                            })
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials();

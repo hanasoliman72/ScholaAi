@@ -19,6 +19,7 @@
         // Statistics
         public decimal totalHoursTaught { get; set; }
         public decimal averageRate { get; set; }
+        public int totalRatings { get; set; }
         public int totalSessions { get; set; }
     }
 }
