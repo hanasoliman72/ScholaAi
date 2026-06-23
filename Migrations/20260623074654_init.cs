@@ -401,8 +401,9 @@ namespace ScholaAi.Migrations
                     RequestId = table.Column<int>(type: "int", nullable: false),
                     TeacherId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RecordedSession = table.Column<long>(type: "bigint", nullable: false),
-                    Summary = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RecordedSession = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RecordingDuration = table.Column<int>(type: "int", nullable: false),
+                    Summary = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FocusScore = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -515,9 +516,9 @@ namespace ScholaAi.Migrations
                 {
                     TransactionId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FromWalletId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ToWalletId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SessionId = table.Column<int>(type: "int", nullable: false),
+                    FromWalletId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ToWalletId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    SessionId = table.Column<int>(type: "int", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
                     PlatformFee = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -709,7 +710,8 @@ namespace ScholaAi.Migrations
                 name: "IX_Transactions_SessionId",
                 table: "Transactions",
                 column: "SessionId",
-                unique: true);
+                unique: true,
+                filter: "[SessionId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_ToWalletId",
