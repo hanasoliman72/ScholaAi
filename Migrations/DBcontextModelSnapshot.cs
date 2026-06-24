@@ -679,18 +679,16 @@ namespace ScholaAi.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("FromWalletId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("PlatformFee")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<int>("SessionId")
+                    b.Property<int?>("SessionId")
                         .HasColumnType("int");
 
                     b.Property<string>("ToWalletId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("TransactionId");
@@ -698,7 +696,8 @@ namespace ScholaAi.Migrations
                     b.HasIndex("FromWalletId");
 
                     b.HasIndex("SessionId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SessionId] IS NOT NULL");
 
                     b.HasIndex("ToWalletId");
 
@@ -996,20 +995,17 @@ namespace ScholaAi.Migrations
                     b.HasOne("ScholaAi.Models.Wallet", "FromWallet")
                         .WithMany("TransactionsFrom")
                         .HasForeignKey("FromWalletId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("ScholaAi.Models.Session", "Session")
                         .WithOne("Transaction")
                         .HasForeignKey("ScholaAi.Models.Transaction", "SessionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("ScholaAi.Models.Wallet", "ToWallet")
                         .WithMany("TransactionsTo")
                         .HasForeignKey("ToWalletId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("FromWallet");
 
