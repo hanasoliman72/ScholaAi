@@ -25,17 +25,17 @@ namespace ScholaAi.Services.payments
         
         }
 
-        //public async Task DebitWalletAsync(string userId, decimal amount)
-        //{
-        //    var wallet = await GetOrCreateWalletAsync(userId);
-        //    if (wallet.Balance < amount)
-        //        throw new InvalidOperationException("Insufficient wallet balance.");
+        public async Task DebitWalletAsync(string userId, decimal amount)
+        {
+            var wallet = await GetOrCreateWalletAsync(userId);
+            if (wallet.Balance < amount)
+                throw new InvalidOperationException("Insufficient wallet balance.");
 
-        //    wallet.Balance -= amount;
-        //    wallet.UpdatedAt = DateTime.UtcNow;
-        //    await _walletRepository.updateAsync(wallet);              
-        //    await _walletRepository.SaveChangesAsync();
-        //}
+            wallet.Balance -= amount;
+            wallet.UpdatedAt = DateTime.UtcNow;
+            await _walletRepository.updateAsync(wallet);              
+            await _walletRepository.SaveChangesAsync();
+        }
 
         public async Task<Wallet> GetOrCreateWalletAsync(string userId)
         {

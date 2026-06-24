@@ -16,6 +16,7 @@ namespace ScholaAi.Services.sessions
         private readonly HttpClient _httpClient;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IHubContext<SessionHub> _sessionHub;
+        private readonly IWalletService _walletService;
 
         public SessionStreamService(
             ISessionRepository sessionRepo,
@@ -23,7 +24,8 @@ namespace ScholaAi.Services.sessions
             IConfiguration config,
             HttpClient httpClient,
             IServiceScopeFactory scopeFactory,
-            IHubContext<SessionHub> sessionHub)
+            IHubContext<SessionHub> sessionHub,
+            IWalletService walletService)
         {
             _sessionRepo = sessionRepo;
             _requestRepo = requestRepo;
@@ -31,6 +33,7 @@ namespace ScholaAi.Services.sessions
             _httpClient = httpClient;
             _scopeFactory = scopeFactory;
             _sessionHub = sessionHub;
+            _walletService = walletService;
         }
 
         public async Task<SessionDetailsDto> GetSessionById(int sessionId)
@@ -200,6 +203,24 @@ namespace ScholaAi.Services.sessions
             session.Status = "ended";
             session.EndedAt = DateTime.UtcNow;
             session.FocusScore = focusScore;
+
+            // Calculate duration in minutes (1 minute = 1 $)
+            int minutes = 0;
+            if (session.StartedAt.HasValue)
+            {
+                var duration = session.EndedAt.Value - session.StartedAt.Value;
+                minutes = (int)Math.Ceiling(duration.TotalMinutes);
+            }
+            if (minutes < 1) 
+            {
+                minutes = 1; // Default to minimum of 1 minute charge if the session was active
+            }
+            decimal amount = minutes;
+
+            // Transfer amount from student to teacher wallet
+            await _walletService.DebitWalletAsync(session.StudentId, amount);
+            await _walletService.CreditWalletAsync(session.TeacherId, amount);
+            await _walletService.RecordTransactionAsync(session.StudentId, session.TeacherId, session.SessionId, amount, 0);
 
             await _sessionRepo.SaveAsync();
         }
