@@ -28,6 +28,7 @@ namespace ScholaAi.DTOs.Rating
         public int sessionId { get; set; }
         public string teacherId { get; set; } = default!;
         public string? studentId { get; set; }
+        public string? studentName { get; set; }
         public int ratingValue { get; set; }
         public string? comment { get; set; }
         public DateTime createdAt { get; set; } = DateTime.UtcNow;
