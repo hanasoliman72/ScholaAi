@@ -28,9 +28,7 @@ namespace ScholaAi.Services.payments
         public async Task DebitWalletAsync(string userId, decimal amount)
         {
             var wallet = await GetOrCreateWalletAsync(userId);
-            if (wallet.Balance < amount)
-                throw new InvalidOperationException("Insufficient wallet balance.");
-
+            // Allow negative balance so session ending and recording uploads can proceed
             wallet.Balance -= amount;
             wallet.UpdatedAt = DateTime.UtcNow;
             await _walletRepository.updateAsync(wallet);              

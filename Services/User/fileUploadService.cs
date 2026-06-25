@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using ScholaAi.Services.Base;
@@ -57,6 +57,12 @@ namespace ScholaAi.Services.User
 
             var supabaseUrl = _config["Supabase:Url"];
             var anonKey = _config["Supabase:ServiceKey"];
+
+            if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(anonKey))
+            {
+                Console.WriteLine("[Upload] ⚠️ Supabase credentials missing in appsettings, falling back to local file storage.");
+                return await UploadFileAsync(file, folder);
+            }
 
             string fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
             string storagePath = $"{folder}/{fileName}";

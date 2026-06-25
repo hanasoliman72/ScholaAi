@@ -202,7 +202,10 @@ namespace ScholaAi.Services.sessions
 
             session.Status = "ended";
             session.EndedAt = DateTime.UtcNow;
-            session.FocusScore = focusScore;
+            if (focusScore > 0 || !session.FocusScore.HasValue)
+            {
+                session.FocusScore = focusScore;
+            }
 
             // Calculate duration in minutes (1 minute = 1 $)
             int minutes = 0;
