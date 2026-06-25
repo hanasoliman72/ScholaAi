@@ -46,6 +46,15 @@ namespace ScholaAi.Services.Teacher
 
             var ratingResult = await _ratingService.getTeacherAverageRatingAsync(teacherId);
 
+            // Compute total hours taught and total sessions from teacher sessions
+            var allSessions = await _teacherRepository.GetTeacherSessionsWithStudentsAsync(teacherId);
+            var totalHours = Math.Round(
+                allSessions
+                    .Where(s => s.RecordingDuration > 0)
+                    .Sum(s => s.RecordingDuration) / 3600.0m,
+                2
+            );
+
             return new teacherProfileDto
             {
                 userName = teacher.ApplicationUser.UserName,
@@ -57,7 +66,9 @@ namespace ScholaAi.Services.Teacher
                 college = teacher.College,
                 averageRate = ratingResult.averageRating,
                 totalRatings = ratingResult.totalRatings,
-                teachingExperience = teacher.TeachingExperience
+                teachingExperience = teacher.TeachingExperience,
+                totalHoursTaught = totalHours,
+                totalSessions = allSessions.Count
             };
         }
 

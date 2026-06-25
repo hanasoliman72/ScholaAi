@@ -177,6 +177,9 @@ namespace ScholaAi.Services.Rating
                     sessionId = r.SessionId,
                     teacherId = r.TeacherId,
                     studentId = r.StudentId,
+                    studentName = r.Student != null
+                        ? $"{r.Student.FirstName} {r.Student.LastName}".Trim()
+                        : null,
                     ratingValue = r.RatingValue,
                     comment = r.Comment,
                     createdAt = r.CreatedAt

@@ -34,6 +34,7 @@ namespace ScholaAi.Repositories.Rating
                 .Where(r => r.TeacherId == teacherId)
                 .Include(r => r.Session)
                 .Include(r => r.Teacher)
+                .Include(r => r.Student)
                 .ToListAsync();
         }
 
