@@ -68,6 +68,15 @@ namespace ScholaAi.Repositories.User
                 .OrderByDescending(c => c.LastMessageTime)
                 .ToListAsync();
 
+            foreach (var c in conversations)
+            {
+                var activeSession = await _context.Sessions
+                    .FirstOrDefaultAsync(s => s.Status == "active" && 
+                        ((s.TeacherId == userId && s.StudentId == c.OtherUserId) || 
+                         (s.TeacherId == c.OtherUserId && s.StudentId == userId)));
+                c.ActiveSessionId = activeSession?.SessionId;
+            }
+
             return conversations;
         }
 
