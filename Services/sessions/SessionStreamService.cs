@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ScholaAi.DTOs.Sessions;
 using ScholaAi.Hubs;
 using ScholaAi.Models;
@@ -16,6 +18,7 @@ namespace ScholaAi.Services.sessions
         private readonly HttpClient _httpClient;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IHubContext<SessionHub> _sessionHub;
+        private readonly IWalletService _walletService;
 
         public SessionStreamService(
             ISessionRepository sessionRepo,
@@ -23,7 +26,8 @@ namespace ScholaAi.Services.sessions
             IConfiguration config,
             HttpClient httpClient,
             IServiceScopeFactory scopeFactory,
-            IHubContext<SessionHub> sessionHub)
+            IHubContext<SessionHub> sessionHub,
+            IWalletService walletService)
         {
             _sessionRepo = sessionRepo;
             _requestRepo = requestRepo;
@@ -31,6 +35,7 @@ namespace ScholaAi.Services.sessions
             _httpClient = httpClient;
             _scopeFactory = scopeFactory;
             _sessionHub = sessionHub;
+            _walletService = walletService;
         }
 
         public async Task<SessionDetailsDto> GetSessionById(int sessionId)
@@ -163,6 +168,79 @@ namespace ScholaAi.Services.sessions
             };
         }
 
+        public async Task<StartSessionResponseDto> StartSessionWithStudent(string teacherId, string studentId)
+        {
+            // prevent starting if teacher already has an active session
+            if (await _sessionRepo.HasActiveSessionForTeacherAsync(teacherId))
+                throw new Exception("You already have an active session. Please end it before starting a new one.");
+
+            // prevent starting if student already has an active session
+            if (await _sessionRepo.HasActiveSessionForStudentAsync(studentId))
+                throw new Exception("The student is already in another active session.");
+
+            // Check if there is already an active session between this teacher and student
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DBcontext>();
+
+            var existing = await context.Sessions
+                .FirstOrDefaultAsync(s => s.TeacherId == teacherId && s.StudentId == studentId && s.Status == "active");
+
+            if (existing != null)
+            {
+                return new StartSessionResponseDto
+                {
+                    RoomId = existing.RoomId,
+                    PeerId = teacherId,
+                    Role = "host",
+                    SessionId = existing.SessionId,
+                };
+            }
+
+            // Create a dummy SessionRequest first because Session.RequestId is a non-nullable int and has a foreign key constraint.
+            var subject = await context.Subjects.FirstOrDefaultAsync();
+            if (subject == null)
+                throw new Exception("No subject found in the database to associate with the session.");
+
+            var request = new SessionRequest
+            {
+                TeacherId = teacherId,
+                StudentId = studentId,
+                SubjectId = subject.subjectId,
+                Status = RequestStatus.Accepted,
+                PreferredDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                Description = "Direct Session"
+            };
+
+            await context.SessionRequests.AddAsync(request);
+            await context.SaveChangesAsync(); // Generates RequestId
+
+            // Create the session
+            var session = new Session
+            {
+                RequestId = request.RequestId,
+                TeacherId = teacherId,
+                StudentId = studentId,
+                RecordedSession = string.Empty,
+                Summary = string.Empty,
+                FocusScore = 0,
+                RoomId = $"room-{request.RequestId}-{Guid.NewGuid().ToString("N")[..8]}",
+                Status = "active",
+                StartedAt = DateTime.UtcNow
+            };
+
+            await context.Sessions.AddAsync(session);
+            await context.SaveChangesAsync();
+
+            return new StartSessionResponseDto
+            {
+                RoomId = session.RoomId,
+                PeerId = teacherId,
+                Role = "host",
+                SessionId = session.SessionId,
+            };
+        }
+
         public async Task<StartSessionResponseDto> JoinSession(string studentId, int requestId)
         {
             var existing = await _sessionRepo.GetByRequestIdAsync(requestId)
@@ -199,7 +277,28 @@ namespace ScholaAi.Services.sessions
 
             session.Status = "ended";
             session.EndedAt = DateTime.UtcNow;
-            session.FocusScore = focusScore;
+            if (focusScore > 0 || !session.FocusScore.HasValue)
+            {
+                session.FocusScore = focusScore;
+            }
+
+            // Calculate duration in minutes (1 minute = 1 $)
+            int minutes = 0;
+            if (session.StartedAt.HasValue)
+            {
+                var duration = session.EndedAt.Value - session.StartedAt.Value;
+                minutes = (int)Math.Ceiling(duration.TotalMinutes);
+            }
+            if (minutes < 1) 
+            {
+                minutes = 1; // Default to minimum of 1 minute charge if the session was active
+            }
+            decimal amount = minutes;
+
+            // Transfer amount from student to teacher wallet
+            await _walletService.DebitWalletAsync(session.StudentId, amount);
+            await _walletService.CreditWalletAsync(session.TeacherId, amount);
+            await _walletService.RecordTransactionAsync(session.StudentId, session.TeacherId, session.SessionId, amount, 0);
 
             await _sessionRepo.SaveAsync();
         }

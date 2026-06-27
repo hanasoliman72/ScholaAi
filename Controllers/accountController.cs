@@ -186,7 +186,13 @@ namespace ScholaAi.Controllers
 
             return Ok(new
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token)
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                userId = identityUser.Id,
+                role = roles.Count > 0 ? roles[0] : "student",
+                email = identityUser.Email,
+                userName = identityUser.UserName,
+                firstName = identityUser.FirstName,
+                lastName = identityUser.LastName
             });
         }
 

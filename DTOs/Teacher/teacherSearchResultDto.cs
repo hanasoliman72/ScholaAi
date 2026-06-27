@@ -3,6 +3,9 @@ namespace ScholaAi.DTOs.Teacher
     public class teacherSearchResultDto
     {
         public string userId { get; set; }
+
+        public string teacherId { get; set; }
+
         public string userName { get; set; }
         public string subject { get; set; }
         public string college { get; set; }
