@@ -92,7 +92,8 @@ namespace ScholaAi.Services.Teacher
                     college = t.College,
                     teachingExperience = t.TeachingExperience,
                     profilePhotoURL = t.ApplicationUser.ProfilePhotoURL,
-                    rating = (double)ratingResult.averageRating
+                    rating = (double)ratingResult.averageRating,
+                    totalRatings = ratingResult.totalRatings
                 });
             }
             return list;

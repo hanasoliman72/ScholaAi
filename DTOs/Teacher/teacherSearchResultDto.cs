@@ -12,6 +12,7 @@ namespace ScholaAi.DTOs.Teacher
         public string teachingExperience { get; set; }
         public string? profilePhotoURL { get; set; }
         public double rating { get; set; }
+        public int totalRatings { get; set; }
     }
 }
 
