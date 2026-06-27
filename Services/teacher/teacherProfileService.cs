@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teacher;
@@ -87,6 +87,7 @@ namespace ScholaAi.Services.Teacher
                 .Where(t => t.ApplicationUser != null)
                 .Select(t => new teacherSearchResultDto
                 {
+                    teacherId = t.ApplicationUserId,
                     userName = t.ApplicationUser.UserName,
                     subject = t.Subject.name,
                     college = t.College,

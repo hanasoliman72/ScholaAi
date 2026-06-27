@@ -7,6 +7,7 @@ namespace ScholaAi.Services.Base
     {
         Task<SessionDetailsDto> GetSessionById(int sessionId);
         Task<StartSessionResponseDto> StartSession(string teacherId, int sessionId);
+        Task<StartSessionResponseDto> StartSessionWithStudent(string teacherId, string studentId);
         Task<StartSessionResponseDto> JoinSession(string studentId, int sessionId);
         Task<List<studentSessionDto>> GetStudentSessions(string studentId);
         Task EndSession(string teacherId, int sessionId, int focusScore = 0);

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ScholaAi.DTOs.Sessions;
 using ScholaAi.Hubs;
 using ScholaAi.Models;
@@ -156,6 +158,79 @@ namespace ScholaAi.Services.sessions
                 await _sessionRepo.AddAsync(session);
 
             await _sessionRepo.SaveAsync();
+
+            return new StartSessionResponseDto
+            {
+                RoomId = session.RoomId,
+                PeerId = teacherId,
+                Role = "host",
+                SessionId = session.SessionId,
+            };
+        }
+
+        public async Task<StartSessionResponseDto> StartSessionWithStudent(string teacherId, string studentId)
+        {
+            // prevent starting if teacher already has an active session
+            if (await _sessionRepo.HasActiveSessionForTeacherAsync(teacherId))
+                throw new Exception("You already have an active session. Please end it before starting a new one.");
+
+            // prevent starting if student already has an active session
+            if (await _sessionRepo.HasActiveSessionForStudentAsync(studentId))
+                throw new Exception("The student is already in another active session.");
+
+            // Check if there is already an active session between this teacher and student
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DBcontext>();
+
+            var existing = await context.Sessions
+                .FirstOrDefaultAsync(s => s.TeacherId == teacherId && s.StudentId == studentId && s.Status == "active");
+
+            if (existing != null)
+            {
+                return new StartSessionResponseDto
+                {
+                    RoomId = existing.RoomId,
+                    PeerId = teacherId,
+                    Role = "host",
+                    SessionId = existing.SessionId,
+                };
+            }
+
+            // Create a dummy SessionRequest first because Session.RequestId is a non-nullable int and has a foreign key constraint.
+            var teacher = await context.Teachers.FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+            if (teacher == null)
+                throw new Exception("Teacher not found in the database.");
+
+            var request = new SessionRequest
+            {
+                TeacherId = teacherId,
+                StudentId = studentId,
+                SubjectId = teacher.SubjectId,
+                Status = RequestStatus.Accepted,
+                PreferredDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                Description = "Direct Session"
+            };
+
+            await context.SessionRequests.AddAsync(request);
+            await context.SaveChangesAsync(); // Generates RequestId
+
+            // Create the session
+            var session = new Session
+            {
+                RequestId = request.RequestId,
+                TeacherId = teacherId,
+                StudentId = studentId,
+                RecordedSession = string.Empty,
+                Summary = string.Empty,
+                FocusScore = 0,
+                RoomId = $"room-{request.RequestId}-{Guid.NewGuid().ToString("N")[..8]}",
+                Status = "active",
+                StartedAt = DateTime.UtcNow
+            };
+
+            await context.Sessions.AddAsync(session);
+            await context.SaveChangesAsync();
 
             return new StartSessionResponseDto
             {

@@ -11,5 +11,6 @@ namespace ScholaAi.DTOs.Chat
         public DateTime LastMessageTime { get; set; }
 
         public int UnreadCount { get; set; }
+        public int? ActiveSessionId { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ScholaAi.DTOs.Student
+namespace ScholaAi.DTOs.Student
 {
     public class studentProfileDto
     {
@@ -19,6 +19,7 @@
 
         // Subscription info
         public decimal? walletBalance { get; set; }
+        public DateTime? lastTopUp { get; set; }
 
         public List<PaymentHistoryItemDto> paymentHistory { get; set; } = new();
     }

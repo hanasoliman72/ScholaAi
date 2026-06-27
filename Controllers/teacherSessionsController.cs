@@ -111,6 +111,24 @@ namespace ScholaAi.Controllers
             }
         }
 
+        // POST: api/teacherSessions/start-by-student/{studentId}
+        [HttpPost("start-by-student/{studentId}")]
+        public async Task<IActionResult> StartByStudent(string studentId)
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+            try
+            {
+                var result = await _sessionStreamService.StartSessionWithStudent(teacherId, studentId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         // POST: api/teacherSessions/{sessionId}/end
         [HttpPost("{sessionId}/end")]
         public async Task<IActionResult> End(int sessionId, [FromBody] EndSessionRequest req)
