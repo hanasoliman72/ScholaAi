@@ -57,6 +57,12 @@ namespace ScholaAi.Services
 
             var paymentHistory = getPaymentHistory(student);
 
+            var lastTopUp = student.ApplicationUser?.Wallet?.TransactionsTo?
+                .Where(t => t.FromWalletId == null)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => (DateTime?)t.CreatedAt)
+                .FirstOrDefault();
+
             return new studentProfileDto
             {
                 userName = student.ApplicationUser.UserName,
@@ -72,6 +78,7 @@ namespace ScholaAi.Services
                 averageFocusScore = avgFocusScore,
                 sessionsThisMonth = sessionsThisMonth,
                 walletBalance = student.ApplicationUser.Wallet?.Balance,
+                lastTopUp = lastTopUp,
                 paymentHistory = paymentHistory
             };
         }

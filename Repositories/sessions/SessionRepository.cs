@@ -39,6 +39,17 @@ namespace ScholaAi.Repositories.sessions
                 .ToListAsync();
         }
 
+        public async Task<List<Session>> GetByTeacherIdAsync(string teacherId)
+        {
+            return await _context.Sessions
+                .Include(s => s.Student).ThenInclude(st => st.ApplicationUser)
+                .Include(s => s.SessionRequest).ThenInclude(sr => sr.Subject)
+                .Where(s => s.TeacherId == teacherId)
+                .OrderByDescending(s => s.StartedAt ?? s.SessionRequest.PreferredDate)
+                .ToListAsync();
+        }
+
+
         public async Task<bool> HasActiveSessionForTeacherAsync(string teacherId)
         {
             return await _context.Sessions

@@ -113,6 +113,48 @@ namespace ScholaAi.Services.sessions
             return dtos;
         }
 
+        public async Task<List<teacherSessionDto>> GetTeacherSessions(string teacherId)
+        {
+            var sessions = await _sessionRepo.GetByTeacherIdAsync(teacherId);
+            if (sessions == null) return new List<teacherSessionDto>();
+
+            var dtos = new List<teacherSessionDto>();
+            foreach (var session in sessions)
+            {
+                var studentFirstName = session.Student?.ApplicationUser?.FirstName ?? "";
+                var studentLastName = session.Student?.ApplicationUser?.LastName ?? "";
+                var studentFullName = $"{studentFirstName} {studentLastName}".Trim();
+                if (string.IsNullOrEmpty(studentFullName)) studentFullName = "Student";
+
+                var sessionDate = session.StartedAt?.ToString("MMM d, yyyy") 
+                    ?? session.SessionRequest?.PreferredDate.ToString("MMM d, yyyy") 
+                    ?? DateTime.UtcNow.ToString("MMM d, yyyy");
+
+                var durationStr = "0m";
+                if (session.RecordingDuration > 0)
+                {
+                    var ts = TimeSpan.FromSeconds(session.RecordingDuration);
+                    durationStr = ts.Hours > 0 ? $"{ts.Hours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+                }
+
+                dtos.Add(new teacherSessionDto
+                {
+                    id = session.SessionId,
+                    subject = session.SessionRequest?.Subject?.name ?? "Other",
+                    lessonTitle = session.SessionRequest?.Description ?? "Private Session",
+                    student = studentFullName,
+                    date = sessionDate,
+                    duration = durationStr,
+                    focusScore = session.FocusScore,
+                    status = session.Status,
+                    recordedSession = session.RecordedSession,
+                    summary = session.Summary
+                });
+            }
+
+            return dtos;
+        }
+
         public async Task<StartSessionResponseDto> StartSession(string teacherId, int requestId)
         {
             // only accepted requests can be started

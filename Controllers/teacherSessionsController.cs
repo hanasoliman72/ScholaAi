@@ -35,6 +35,19 @@ namespace ScholaAi.Controllers
             return Ok(data);
         }
 
+        [HttpGet("GetMySessions")]
+        public async Task<IActionResult> GetMySessions()
+        {
+            var teacherId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(teacherId))
+                return Unauthorized(new { message = "Invalid token" });
+
+            var data = await _sessionStreamService.GetTeacherSessions(teacherId);
+            return Ok(data);
+        }
+
+
         [HttpPost("{sessionId}/accept")]
         public async Task<IActionResult> Accept(int sessionId)
         {
