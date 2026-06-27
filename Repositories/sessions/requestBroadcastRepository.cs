@@ -62,7 +62,10 @@ public class requestBroadcastRepository : genericRepository<RequestBroadcast>, I
                     b.SessionRequest.Student.ApplicationUser.FirstName + " " +
                     b.SessionRequest.Student.ApplicationUser.LastName,
                 subject = b.SessionRequest.Subject.name,
-                preferredDate = b.SessionRequest.PreferredDate,
+                // Ensure date is UTC so frontend parses it correctly
+                preferredDate = b.SessionRequest.PreferredDate.Kind == DateTimeKind.Unspecified 
+                    ? DateTime.SpecifyKind(b.SessionRequest.PreferredDate, DateTimeKind.Utc) 
+                    : b.SessionRequest.PreferredDate,
                 description = b.SessionRequest.Description,
                 isAccepted = b.IsAccepted
             })

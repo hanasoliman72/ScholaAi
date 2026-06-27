@@ -197,15 +197,15 @@ namespace ScholaAi.Services.sessions
             }
 
             // Create a dummy SessionRequest first because Session.RequestId is a non-nullable int and has a foreign key constraint.
-            var subject = await context.Subjects.FirstOrDefaultAsync();
-            if (subject == null)
-                throw new Exception("No subject found in the database to associate with the session.");
+            var teacher = await context.Teachers.FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+            if (teacher == null)
+                throw new Exception("Teacher not found in the database.");
 
             var request = new SessionRequest
             {
                 TeacherId = teacherId,
                 StudentId = studentId,
-                SubjectId = subject.subjectId,
+                SubjectId = teacher.SubjectId,
                 Status = RequestStatus.Accepted,
                 PreferredDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
