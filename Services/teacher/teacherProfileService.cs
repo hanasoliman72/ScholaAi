@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using ScholaAi.DTOs.Common;
 using ScholaAi.DTOs.Student;
 using ScholaAi.DTOs.Teacher;
@@ -61,9 +61,6 @@ namespace ScholaAi.Services.Teacher
             };
         }
 
-        // ===============================
-        // Student Search About Teachers
-        // ===============================
         public async Task<List<teacherSearchResultDto>> SearchTeachersAsync(
                string? name,
                string? subject,
@@ -72,18 +69,24 @@ namespace ScholaAi.Services.Teacher
             var teachers = await _teacherRepository
                 .SearchTeachersAsync(name, subject, keyword);
 
-            return teachers
-                .Where(t => t.ApplicationUser != null)
-                .Select(t => new teacherSearchResultDto
+            var list = new List<teacherSearchResultDto>();
+            foreach (var t in teachers.Where(t => t.ApplicationUser != null))
+            {
+                var ratingResult = await _ratingService.getTeacherAverageRatingAsync(t.ApplicationUserId);
+                list.Add(new teacherSearchResultDto
                 {
+                    userId = t.ApplicationUserId,
                     userName = t.ApplicationUser.UserName,
                     subject = t.Subject.name,
                     college = t.College,
                     teachingExperience = t.TeachingExperience,
-                    profilePhotoURL = t.ApplicationUser.ProfilePhotoURL
-                })
-                .ToList();
+                    profilePhotoURL = t.ApplicationUser.ProfilePhotoURL,
+                    rating = (double)ratingResult.averageRating
+                });
+            }
+            return list;
         }
+
 
         public async Task<bool> ChangePasswordAsync(string userId, changePasswordDto dto)
         {
@@ -145,11 +148,8 @@ namespace ScholaAi.Services.Teacher
             if (!string.IsNullOrWhiteSpace(dto.lastName))
                 user.LastName = dto.lastName;
 
-            if (!string.IsNullOrWhiteSpace(dto.phone))
-                user.PhoneNumber = dto.phone;
-
-            if (!string.IsNullOrWhiteSpace(dto.description))
-                user.Description = dto.description;
+            user.PhoneNumber = string.IsNullOrWhiteSpace(dto.phone) ? null : dto.phone;
+            user.Description = string.IsNullOrWhiteSpace(dto.description) ? null : dto.description;
 
             // teacher specific info
             if (!string.IsNullOrWhiteSpace(dto.college))
