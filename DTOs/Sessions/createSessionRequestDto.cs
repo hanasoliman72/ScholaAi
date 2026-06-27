@@ -1,4 +1,4 @@
-﻿using ScholaAi.Models;
+using ScholaAi.Models;
 
 namespace ScholaAi.DTOs.Sessions
 {

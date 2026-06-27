@@ -39,9 +39,9 @@ namespace ScholaAi.Services
             var sessionsThisMonth = student.Sessions
                 .Count(s => s.Transaction != null && s.Transaction.CreatedAt >= startOfMonth);
 
-            var totalHours = student.Sessions
+            var totalHours = Math.Round(student.Sessions
                 .Where(s => s.RecordingDuration > 0)
-                .Sum(s => s.RecordingDuration) / 3600.0m;
+                .Sum(s => s.RecordingDuration) / 3600.0m, 2);
 
             var focusScores = student.Sessions
                 .Where(s => s.FocusScore >= 0) // ensure score exists
@@ -78,7 +78,7 @@ namespace ScholaAi.Services
                 averageFocusScore = avgFocusScore,
                 sessionsThisMonth = sessionsThisMonth,
                 walletBalance = student.ApplicationUser.Wallet?.Balance,
-                lastTopUp = lastTopUp,
+                lastTopUp = student.ApplicationUser.Wallet?.UpdatedAt,
                 paymentHistory = paymentHistory
             };
         }

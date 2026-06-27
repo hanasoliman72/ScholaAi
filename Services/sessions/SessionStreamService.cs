@@ -239,15 +239,15 @@ namespace ScholaAi.Services.sessions
             }
 
             // Create a dummy SessionRequest first because Session.RequestId is a non-nullable int and has a foreign key constraint.
-            var subject = await context.Subjects.FirstOrDefaultAsync();
-            if (subject == null)
-                throw new Exception("No subject found in the database to associate with the session.");
+            var teacher = await context.Teachers.FirstOrDefaultAsync(t => t.ApplicationUserId == teacherId);
+            if (teacher == null)
+                throw new Exception("Teacher not found in the database.");
 
             var request = new SessionRequest
             {
                 TeacherId = teacherId,
                 StudentId = studentId,
-                SubjectId = subject.subjectId,
+                SubjectId = teacher.SubjectId,
                 Status = RequestStatus.Accepted,
                 PreferredDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
@@ -420,7 +420,10 @@ namespace ScholaAi.Services.sessions
                     .ReadFromJsonAsync<SummaryResponse>();
 
                 if (result?.Success != true || string.IsNullOrEmpty(result.Summary))
+                {
+                    Console.WriteLine($"[Summary] ❌ Python AI server error: {result?.Error ?? "Unknown error"}");
                     return;
+                }
 
                 // create a fresh scope so DbContext is not disposed
                 // this sessionRepo has a FRESH DbContext that belongs to this background task
@@ -449,5 +452,6 @@ namespace ScholaAi.Services.sessions
         public bool Success { get; set; }
         public string? Summary { get; set; }
         public string? Transcript { get; set; }
+        public string? Error { get; set; }
     }
 }
