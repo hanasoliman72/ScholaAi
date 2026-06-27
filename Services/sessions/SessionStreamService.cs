@@ -378,7 +378,10 @@ namespace ScholaAi.Services.sessions
                     .ReadFromJsonAsync<SummaryResponse>();
 
                 if (result?.Success != true || string.IsNullOrEmpty(result.Summary))
+                {
+                    Console.WriteLine($"[Summary] ❌ Python AI server error: {result?.Error ?? "Unknown error"}");
                     return;
+                }
 
                 // create a fresh scope so DbContext is not disposed
                 // this sessionRepo has a FRESH DbContext that belongs to this background task
@@ -407,5 +410,6 @@ namespace ScholaAi.Services.sessions
         public bool Success { get; set; }
         public string? Summary { get; set; }
         public string? Transcript { get; set; }
+        public string? Error { get; set; }
     }
 }
