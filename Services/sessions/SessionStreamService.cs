@@ -324,23 +324,27 @@ namespace ScholaAi.Services.sessions
                 session.FocusScore = focusScore;
             }
 
-            // Calculate duration in minutes (1 minute = 1 $)
+            // Calculate duration in minutes (1 minute = 1 EGP)
             int minutes = 0;
             if (session.StartedAt.HasValue)
             {
                 var duration = session.EndedAt.Value - session.StartedAt.Value;
                 minutes = (int)Math.Ceiling(duration.TotalMinutes);
             }
-            if (minutes < 1) 
-            {
-                minutes = 1; // Default to minimum of 1 minute charge if the session was active
-            }
+            if (minutes < 1) minutes = 1; // Minimum 1 minute charge
+
             decimal amount = minutes;
 
-            // Transfer amount from student to teacher wallet
+            // Platform fee: 10% of the session amount
+            decimal platformFee = Math.Round(amount * 0.10m, 2);
+
+            // Teacher receives 90% of the session amount
+            decimal teacherPayout = amount - platformFee;
+
+            // Transfer: student pays full amount, teacher gets 90%, platform keeps 10%
             await _walletService.DebitWalletAsync(session.StudentId, amount);
-            await _walletService.CreditWalletAsync(session.TeacherId, amount);
-            await _walletService.RecordTransactionAsync(session.StudentId, session.TeacherId, session.SessionId, amount, 0);
+            await _walletService.CreditWalletAsync(session.TeacherId, teacherPayout);
+            await _walletService.RecordTransactionAsync(session.StudentId, session.TeacherId, session.SessionId, amount, platformFee);
 
             await _sessionRepo.SaveAsync();
         }
