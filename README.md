@@ -189,9 +189,3 @@ The real-time hub (`/hubs/session`) pushes the following events to connected cli
 | Frontend | `ScholaAi-Front-End` | React application |
 | Session Server | `ScholaAi-mediasoup-server` | WebRTC media routing |
 | AI Model Hub | `ScholaAi-model-hub` | Focus detection & summarization |
-
----
-
-## 📄 License
-
-MIT
