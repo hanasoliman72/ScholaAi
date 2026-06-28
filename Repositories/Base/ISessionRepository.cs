@@ -7,6 +7,7 @@ namespace ScholaAi.Repositories.Base
     {
         Task<Session?> GetByIdAsync(int sessionId);
         Task<List<Session>> GetByStudentIdAsync(string studentId);
+        Task<List<Session>> GetByTeacherIdAsync(string teacherId);
         Task<Session?> GetByRequestIdAsync(int requestId);
         Task<bool> HasActiveSessionForTeacherAsync(string teacherId);
         Task<bool> HasActiveSessionForStudentAsync(string studentId);

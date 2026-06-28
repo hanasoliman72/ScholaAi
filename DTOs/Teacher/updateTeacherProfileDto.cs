@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ScholaAi.DTOs.Teacher
 {
@@ -15,8 +15,7 @@ namespace ScholaAi.DTOs.Teacher
         [StringLength(50)]
         public string? lastName { get; set; }
 
-        [Phone]
-        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$", ErrorMessage = "Invalid phone number format.")]
+        [RegularExpression(@"^(\+?[0-9]{7,20})$", ErrorMessage = "Invalid phone number format. Use digits only, optionally starting with +.")]
         public string? phone { get; set; }
 
         [StringLength(500)]

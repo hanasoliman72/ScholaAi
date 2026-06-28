@@ -575,6 +575,7 @@ namespace ScholaAi.Controllers
 
         // GET api/Admin/subjects
         [HttpGet("subjects")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetSubjects()
         {
             try

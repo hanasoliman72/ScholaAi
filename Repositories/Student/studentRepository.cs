@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScholaAi.DTOs.Student;
 using ScholaAi.Models;
 using ScholaAi.Repositories.Base;
@@ -19,6 +19,9 @@ namespace ScholaAi.Repositories.Student
                             .ThenInclude(sess => sess.Session)
                                 .ThenInclude(t => t.Teacher)
                                     .ThenInclude(tu => tu.ApplicationUser)
+                .Include(s => s.ApplicationUser)
+                    .ThenInclude(u => u.Wallet)
+                        .ThenInclude(w => w.TransactionsTo) // Transactions TO (topups/refunds)
                 .Include(s => s.Sessions)
                     .ThenInclude(sess => sess.Transaction) // Session transactions
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == id);

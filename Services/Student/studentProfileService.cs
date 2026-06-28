@@ -57,6 +57,12 @@ namespace ScholaAi.Services
 
             var paymentHistory = getPaymentHistory(student);
 
+            var lastTopUp = student.ApplicationUser?.Wallet?.TransactionsTo?
+                .Where(t => t.FromWalletId == null)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => (DateTime?)t.CreatedAt)
+                .FirstOrDefault();
+
             return new studentProfileDto
             {
                 userName = student.ApplicationUser.UserName,
@@ -120,11 +126,8 @@ namespace ScholaAi.Services
             if (!string.IsNullOrWhiteSpace(dto.lastName))
                 user.LastName = dto.lastName;
 
-            if (!string.IsNullOrWhiteSpace(dto.phone))
-                user.PhoneNumber = dto.phone;
-
-            if (!string.IsNullOrWhiteSpace(dto.description))
-                user.Description = dto.description;
+            user.PhoneNumber = string.IsNullOrWhiteSpace(dto.phone) ? null : dto.phone;
+            user.Description = string.IsNullOrWhiteSpace(dto.description) ? null : dto.description;
 
             if (dto.grade.HasValue)
                 student.Grade = dto.grade.Value;

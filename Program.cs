@@ -238,7 +238,6 @@ namespace ScholaAi
 
 
             app.MapControllers();
-
             app.Run();
 
         }

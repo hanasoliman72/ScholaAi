@@ -113,6 +113,48 @@ namespace ScholaAi.Services.sessions
             return dtos;
         }
 
+        public async Task<List<teacherSessionDto>> GetTeacherSessions(string teacherId)
+        {
+            var sessions = await _sessionRepo.GetByTeacherIdAsync(teacherId);
+            if (sessions == null) return new List<teacherSessionDto>();
+
+            var dtos = new List<teacherSessionDto>();
+            foreach (var session in sessions)
+            {
+                var studentFirstName = session.Student?.ApplicationUser?.FirstName ?? "";
+                var studentLastName = session.Student?.ApplicationUser?.LastName ?? "";
+                var studentFullName = $"{studentFirstName} {studentLastName}".Trim();
+                if (string.IsNullOrEmpty(studentFullName)) studentFullName = "Student";
+
+                var sessionDate = session.StartedAt?.ToString("MMM d, yyyy") 
+                    ?? session.SessionRequest?.PreferredDate.ToString("MMM d, yyyy") 
+                    ?? DateTime.UtcNow.ToString("MMM d, yyyy");
+
+                var durationStr = "0m";
+                if (session.RecordingDuration > 0)
+                {
+                    var ts = TimeSpan.FromSeconds(session.RecordingDuration);
+                    durationStr = ts.Hours > 0 ? $"{ts.Hours}h {ts.Minutes}m" : $"{ts.Minutes}m";
+                }
+
+                dtos.Add(new teacherSessionDto
+                {
+                    id = session.SessionId,
+                    subject = session.SessionRequest?.Subject?.name ?? "Other",
+                    lessonTitle = session.SessionRequest?.Description ?? "Private Session",
+                    student = studentFullName,
+                    date = sessionDate,
+                    duration = durationStr,
+                    focusScore = session.FocusScore,
+                    status = session.Status,
+                    recordedSession = session.RecordedSession,
+                    summary = session.Summary
+                });
+            }
+
+            return dtos;
+        }
+
         public async Task<StartSessionResponseDto> StartSession(string teacherId, int requestId)
         {
             // only accepted requests can be started
@@ -282,23 +324,27 @@ namespace ScholaAi.Services.sessions
                 session.FocusScore = focusScore;
             }
 
-            // Calculate duration in minutes (1 minute = 1 $)
+            // Calculate duration in minutes (1 minute = 1 EGP)
             int minutes = 0;
             if (session.StartedAt.HasValue)
             {
                 var duration = session.EndedAt.Value - session.StartedAt.Value;
                 minutes = (int)Math.Ceiling(duration.TotalMinutes);
             }
-            if (minutes < 1) 
-            {
-                minutes = 1; // Default to minimum of 1 minute charge if the session was active
-            }
+            if (minutes < 1) minutes = 1; // Minimum 1 minute charge
+
             decimal amount = minutes;
 
-            // Transfer amount from student to teacher wallet
+            // Platform fee: 10% of the session amount
+            decimal platformFee = Math.Round(amount * 0.10m, 2);
+
+            // Teacher receives 90% of the session amount
+            decimal teacherPayout = amount - platformFee;
+
+            // Transfer: student pays full amount, teacher gets 90%, platform keeps 10%
             await _walletService.DebitWalletAsync(session.StudentId, amount);
-            await _walletService.CreditWalletAsync(session.TeacherId, amount);
-            await _walletService.RecordTransactionAsync(session.StudentId, session.TeacherId, session.SessionId, amount, 0);
+            await _walletService.CreditWalletAsync(session.TeacherId, teacherPayout);
+            await _walletService.RecordTransactionAsync(session.StudentId, session.TeacherId, session.SessionId, amount, platformFee);
 
             await _sessionRepo.SaveAsync();
         }
@@ -378,7 +424,10 @@ namespace ScholaAi.Services.sessions
                     .ReadFromJsonAsync<SummaryResponse>();
 
                 if (result?.Success != true || string.IsNullOrEmpty(result.Summary))
+                {
+                    Console.WriteLine($"[Summary] ❌ Python AI server error: {result?.Error ?? "Unknown error"}");
                     return;
+                }
 
                 // create a fresh scope so DbContext is not disposed
                 // this sessionRepo has a FRESH DbContext that belongs to this background task
@@ -407,5 +456,6 @@ namespace ScholaAi.Services.sessions
         public bool Success { get; set; }
         public string? Summary { get; set; }
         public string? Transcript { get; set; }
+        public string? Error { get; set; }
     }
 }
