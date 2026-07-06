@@ -3,12 +3,12 @@
 <br/>
 
 ```
-███████╗ ██████╗██╗  ██╗ ██████╗ ██╗      █████╗      █████╗ ██╗
-██╔════╝██╔════╝██║  ██║██╔═══██╗██║     ██╔══██╗    ██╔══██╗██║
-███████╗██║     ███████║██║   ██║██║     ███████║    ███████║██║
-╚════██║██║     ██╔══██║██║   ██║██║     ██╔══██║    ██╔══██║██║
-███████║╚██████╗██║  ██║╚██████╔╝███████╗██║  ██║    ██║  ██║██║
-╚══════╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚═╝
+                          ███████╗ ██████╗██╗  ██╗ ██████╗ ██╗      █████╗      █████╗ ██╗
+                          ██╔════╝██╔════╝██║  ██║██╔═══██╗██║     ██╔══██╗    ██╔══██╗██║
+                          ███████╗██║     ███████║██║   ██║██║     ███████║    ███████║██║
+                          ╚════██║██║     ██╔══██║██║   ██║██║     ██╔══██║    ██╔══██║██║
+                          ███████║╚██████╗██║  ██║╚██████╔╝███████╗██║  ██║    ██║  ██║██║
+                          ╚══════╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝    ╚═╝  ╚═╝╚═╝
 ```
 
 # 🎓 ScholaAi — Backend API
@@ -442,10 +442,10 @@ ScholaAi uses a **wallet-based** payment model powered by Stripe:
 
 | Repository | Stack | Port | Description |
 |---|---|---|---|
-| **[ScholaAi-Front-End](https://github.com/<your-org>/ScholaAi-Front-End)** | React 19 + TypeScript + Vite + TailwindCSS | `5173` | Student, teacher & admin UI |
-| **[ScholaAi](https://github.com/<your-org>/ScholaAi)** ← **(this repo)** | .NET 8 Web API | `5254` | Core REST API & SignalR hubs |
-| **[ScholaAi-mediasoup-server](https://github.com/<your-org>/ScholaAi-mediasoup-server)** | Node.js + mediasoup | `3000` | WebRTC SFU for live video sessions |
-| **[ScholaAi-model-hub](https://github.com/<your-org>/ScholaAi-model-hub)** | Python + FastAPI | `8000` / `8001` | Focus detection & lecture summarization |
+| **[ScholaAi-Front-End](https://github.com/Hamss315/ScholaAi-Front-End)** | React 19 + TypeScript + Vite + TailwindCSS | `5173` | Student, teacher & admin UI |
+| **[ScholaAi](https://github.com/hanasoliman72/ScholaAi)** ← **(this repo)** | .NET 8 Web API | `5254` | Core REST API & SignalR hubs |
+| **[ScholaAi-mediasoup-server](https://github.com/hanasoliman72/scholaAi-mediasoup-server)** | Node.js + mediasoup | `3000` | WebRTC SFU for live video sessions |
+| **[ScholaAi-model-hub](https://github.com/hanasoliman72/scholaAi-model-hub)** | Python + FastAPI | `8000` / `8001` | Focus detection & lecture summarization |
 
 <div align="center">
 
